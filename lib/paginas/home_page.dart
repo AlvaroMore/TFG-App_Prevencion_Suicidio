@@ -1,4 +1,4 @@
-import 'package:demo/paginas/URL.dart';
+import 'package:demo/paginas/enlace.dart';
 import 'package:demo/paginas/ajustes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:demo/auth.dart';
@@ -40,7 +40,7 @@ class HomePage extends StatelessWidget{
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => URL()),
+          MaterialPageRoute(builder: (context) => enlace()),
         );
       }
     );
