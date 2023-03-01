@@ -1,5 +1,6 @@
 import 'package:demo/paginas/enlace.dart';
 import 'package:demo/paginas/ajustes.dart';
+import 'package:demo/paginas/media.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:demo/auth.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,17 @@ class HomePage extends StatelessWidget{
       }
     );
   }
+  Widget _media(BuildContext context) {
+    return ElevatedButton(
+      child: const Text('Media'),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => media()),
+        );
+      }
+    );
+  }
   Widget _URL(BuildContext context) {
     return ElevatedButton(
       child: const Text('URL'),
@@ -56,7 +68,7 @@ class HomePage extends StatelessWidget{
       }
     );
   }
-
+  
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -76,6 +88,7 @@ class HomePage extends StatelessWidget{
             _calendario(context),
             _URL(context),
             _ajustes(context),
+            _media(context),
           ],
         )
       ),

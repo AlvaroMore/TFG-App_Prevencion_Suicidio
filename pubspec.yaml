@@ -44,6 +44,7 @@ dependencies:
   syncfusion_flutter_calendar: ^20.4.51
   url_launcher: ^6.1.9
   app_settings: ^4.2.0
+  video_player: ^2.5.2
 
 dev_dependencies:
   flutter_test:
