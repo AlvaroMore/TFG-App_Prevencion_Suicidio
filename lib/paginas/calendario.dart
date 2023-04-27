@@ -7,6 +7,9 @@ class calendario extends StatelessWidget{
   @override
   Widget build(BuildContext context){
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Calendario'),
+      ),
       body: SfCalendar(
         view: CalendarView.week,
         firstDayOfWeek: 1,

@@ -43,7 +43,8 @@ class _LoginPageState extends State<LoginPage>{
   }
 
   Widget _title(){
-    return const Text('Login');
+    
+    return const Text('APPBU-S');
   }
 
   Widget _entryField(
@@ -85,6 +86,7 @@ class _LoginPageState extends State<LoginPage>{
     return Scaffold(
       appBar: AppBar(
         title: _title(),
+        centerTitle: true,
       ),
       body: Container(
         height: double.infinity,
