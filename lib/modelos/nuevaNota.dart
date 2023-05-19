@@ -1,8 +1,8 @@
 import 'dart:math';
-
 import 'package:demo/paginas/notas.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:demo/modelos/nota.dart';
 
 class nuevaNota extends StatefulWidget {
   @override
@@ -14,6 +14,7 @@ class nuevaNotaState extends State<nuevaNota> {
   TextEditingController contenido = TextEditingController();
 
   final baseDatos = FirebaseDatabase.instance;
+  
   @override
   Widget build(BuildContext context) {
     var rng = Random();
@@ -64,9 +65,10 @@ class nuevaNotaState extends State<nuevaNota> {
             MaterialButton(
               color: Colors.blue,
               onPressed: () {
+                var nuevaNota = Nota(titulo: titulo.text, contenido: contenido.text);
                 datosRef.set({
-                  "Titulo": titulo.text,
-                  "Contenido": contenido.text,
+                  "Titulo": nuevaNota.titulo,
+                  "Contenido": nuevaNota.contenido,
                 }).asStream();
                 Navigator.pushReplacement(
                     context, MaterialPageRoute(builder: (_) => notas()));
