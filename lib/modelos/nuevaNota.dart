@@ -53,6 +53,7 @@ class NuevaNotaState extends State<NuevaNota> {
                 decoration: InputDecoration(
                   hintText: 'Contenido',
                 ),
+                maxLines: null,
               ),
             ),
             SizedBox(

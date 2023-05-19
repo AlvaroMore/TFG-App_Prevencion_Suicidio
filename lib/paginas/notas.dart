@@ -30,8 +30,6 @@ class inicio extends StatefulWidget {
 
 class _inicioState extends State<inicio> {
   final baseDatos = FirebaseDatabase.instance;
-  TextEditingController titulo = TextEditingController();
-  TextEditingController contenido = TextEditingController();
   var dato;
   var valor;
   var key_;
@@ -73,6 +71,9 @@ class _inicioState extends State<inicio> {
           valor = valor.trim();
           dato = valor.split(',');
           if (dato.length >= 2) {
+            TextEditingController tituloEditar = TextEditingController(text: dato[1]);
+            TextEditingController contenidoEditar = TextEditingController(text: dato[0]);
+
             return GestureDetector(
               onTap: () {
                 setState(() {
@@ -81,25 +82,39 @@ class _inicioState extends State<inicio> {
                 showDialog(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: Container(
-                      decoration: BoxDecoration(border: Border.all()),
-                      child: TextField(
-                        controller: titulo,
-                        textAlign: TextAlign.center,
-                        decoration: InputDecoration(
-                          hintText: 'Titulo',
-                        ),
+                    title: Text(
+                      "Editar Nota",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    content: Container(
-                      decoration: BoxDecoration(border: Border.all()),
-                      child: TextField(
-                        controller: contenido,
-                        textAlign: TextAlign.center,
-                        decoration: InputDecoration(
-                          hintText: 'Contenido',
+                    content: Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(border: Border.all()),
+                          child: TextField(
+                            controller: tituloEditar,
+                            textAlign: TextAlign.center,
+                            decoration: InputDecoration(
+                              hintText: 'Titulo',
+                            ),
+                            maxLines: null,  // Expandable multiline text field
+                          ),
                         ),
-                      ),
+                        SizedBox(height: 10),
+                        Container(
+                          decoration: BoxDecoration(border: Border.all()),
+                          child: TextField(
+                            controller: contenidoEditar,
+                            textAlign: TextAlign.center,
+                            decoration: InputDecoration(
+                              hintText: 'Contenido',
+                            ),
+                            maxLines: null,  // Expandable multiline text field
+                          ),
+                        ),
+                      ],
                     ),
                     actions: <Widget>[
                       MaterialButton(
@@ -116,7 +131,10 @@ class _inicioState extends State<inicio> {
                       ),
                       MaterialButton(
                         onPressed: () async {
-                          await actualizar();
+                          await actualizar(
+                            tituloEditar.text,
+                            contenidoEditar.text,
+                          );
                           Navigator.of(ctx).pop();
                         },
                         color: Colors.blue,
@@ -170,20 +188,18 @@ class _inicioState extends State<inicio> {
               ),
             );
           } else {
-            return SizedBox(); // Si el dato no cumple con el formato esperado, no se muestra nada en la lista
+            return SizedBox();
           }
         },
       ),
     );
   }
 
-  actualizar() async {
+  actualizar(String nuevoTitulo, String nuevoContenido) async {
     DatabaseReference datosGRef = FirebaseDatabase.instance.reference().child("notas/$key_");
     await datosGRef.update({
-      "Titulo": titulo.text,
-      "Contenido": contenido.text,
+      "Titulo": nuevoTitulo,
+      "Contenido": nuevoContenido,
     });
-    titulo.clear();
-    contenido.clear();
   }
 }
