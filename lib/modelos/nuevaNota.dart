@@ -4,22 +4,22 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:demo/modelos/nota.dart';
 
-class nuevaNota extends StatefulWidget {
+class NuevaNota extends StatefulWidget {
   @override
-  nuevaNotaState createState() => nuevaNotaState();
+  NuevaNotaState createState() => NuevaNotaState();
 }
 
-class nuevaNotaState extends State<nuevaNota> {
+class NuevaNotaState extends State<NuevaNota> {
   TextEditingController titulo = TextEditingController();
   TextEditingController contenido = TextEditingController();
 
   final baseDatos = FirebaseDatabase.instance;
-  
+
   @override
   Widget build(BuildContext context) {
     var rng = Random();
     var key_ = rng.nextInt(10000);
-    final datosRef = baseDatos.ref().child('notas/$key_');
+    final datosRef = baseDatos.reference().child('notas/$key_');
 
     return Scaffold(
       appBar: AppBar(
@@ -33,9 +33,7 @@ class nuevaNotaState extends State<nuevaNota> {
               height: 20,
             ),
             Container(
-              padding: const EdgeInsets.only(
-                left: 10
-              ),
+              padding: const EdgeInsets.only(left: 10),
               decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 2)),
               child: TextField(
                 controller: titulo,
@@ -48,9 +46,7 @@ class nuevaNotaState extends State<nuevaNota> {
               height: 20,
             ),
             Container(
-              padding: const EdgeInsets.only(
-                left: 10
-              ),
+              padding: const EdgeInsets.only(left: 10),
               decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 2)),
               child: TextField(
                 controller: contenido,
@@ -65,13 +61,17 @@ class nuevaNotaState extends State<nuevaNota> {
             MaterialButton(
               color: Colors.blue,
               onPressed: () {
-                var nuevaNota = Nota(titulo: titulo.text, contenido: contenido.text);
+                var nuevaNota = Nota(
+                  titulo: titulo.text,
+                  contenido: contenido.text,
+                  fechaCreacion: DateTime.now(),
+                );
                 datosRef.set({
                   "Titulo": nuevaNota.titulo,
                   "Contenido": nuevaNota.contenido,
+                  "FechaCreacion": nuevaNota.fechaCreacion.toString(),
                 }).asStream();
-                Navigator.pushReplacement(
-                    context, MaterialPageRoute(builder: (_) => notas()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => notas()));
               },
               child: Text(
                 "Guardar",

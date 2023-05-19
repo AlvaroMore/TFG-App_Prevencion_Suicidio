@@ -1,12 +1,12 @@
 import 'package:demo/paginas/enlace.dart';
 import 'package:demo/paginas/ajustes.dart';
 import 'package:demo/paginas/media.dart';
-import 'package:demo/paginas/notas.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:demo/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:demo/paginas/calendario.dart';
 import 'package:app_settings/app_settings.dart';
+import 'package:demo/paginas/notas.dart';
 
 class HomePage extends StatelessWidget{
   HomePage({Key? key}) : super(key: key);
