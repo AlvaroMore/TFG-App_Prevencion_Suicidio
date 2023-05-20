@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import '../auth.dart';
 
 class LoginPage extends StatefulWidget{
@@ -10,11 +11,47 @@ class LoginPage extends StatefulWidget{
 }
 
 class _LoginPageState extends State<LoginPage>{
+  String? selectedRole;
   String? errorMessage = '';
   bool isLogin = true;
+  bool isAdminMode = false;
 
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
+
+  Widget _roleDropdown() {
+    if (!isAdminMode){
+      return SizedBox.shrink();
+    }
+    return DropdownButton<String>(
+      value: selectedRole,
+      onChanged: (String? newValue) {
+        setState(() {
+          selectedRole = newValue;
+        });
+      },
+      items: <String>[
+        'usuario',
+        'administrador',
+      ].map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _adminButton() {
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          isAdminMode = true;
+        });
+      },
+      child: Text('Modo Administrador'),
+    );
+  }
 
   Future<void> signInWithEmailAndPassword() async{
     try{
@@ -34,6 +71,7 @@ class _LoginPageState extends State<LoginPage>{
       await Auth().createUserWithEmailAndPassword(
         email: _controllerEmail.text, 
         password: _controllerPassword.text,
+        rol: selectedRole ?? 'usuario',
         );
     } on FirebaseAuthException catch (e){
       setState(() {
