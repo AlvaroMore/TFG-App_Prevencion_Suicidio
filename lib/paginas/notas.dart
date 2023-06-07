@@ -69,128 +69,140 @@ class _InicioState extends State<Inicio> {
         query: datosRef,
         shrinkWrap: true,
         itemBuilder: (context, snapshot, animation, index) {
-          var valorString = snapshot.value.toString();
-          valor = valorString.replaceAll(RegExp("{|}|Contenido: |Titulo: |FechaCreacion: |UserId: "), "");
-          valor = valor.trim();
-          dato = valor.split(',');
-          if (dato.length >= 2) {
-            TextEditingController tituloEditar = TextEditingController(text: dato[2]);
-            TextEditingController contenidoEditar = TextEditingController(text: dato[0]);
+          final noteData = snapshot.value as Map<dynamic, dynamic>;
+          final noteUserId = noteData['UserId'] as String;
 
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  key_ = snapshot.key;
-                });
-                showDialog(
-                  context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: Text(
-                      "Editar Nota",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+          // Check if the note belongs to the current user
+          if (noteUserId == user?.uid) {
+            var valorString = noteData.toString();
+            valor = valorString.replaceAll(
+                RegExp("{|}|Contenido: |Titulo: |FechaCreacion: |UserId: "), "");
+            valor = valor.trim();
+            dato = valor.split(',');
+
+            if (dato.length >= 2) {
+              TextEditingController tituloEditar =
+                  TextEditingController(text: dato[2]);
+              TextEditingController contenidoEditar =
+                  TextEditingController(text: dato[0]);
+
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    key_ = snapshot.key;
+                  });
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: Text(
+                        "Editar Nota",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    content: Column(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(border: Border.all()),
-                          child: TextField(
-                            controller: tituloEditar,
-                            textAlign: TextAlign.center,
-                            decoration: InputDecoration(
-                              hintText: 'Titulo',
+                      content: Column(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(border: Border.all()),
+                            child: TextField(
+                              controller: tituloEditar,
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                hintText: 'Titulo',
+                              ),
+                              maxLines: null, // Expandable multiline text field
                             ),
-                            maxLines: null, // Expandable multiline text field
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            decoration: BoxDecoration(border: Border.all()),
+                            child: TextField(
+                              controller: contenidoEditar,
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                hintText: 'Contenido',
+                              ),
+                              maxLines: null, // Expandable multiline text field
+                            ),
+                          ),
+                        ],
+                      ),
+                      actions: <Widget>[
+                        MaterialButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                          },
+                          color: Colors.blue,
+                          child: Text(
+                            "Cancelar",
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                        SizedBox(height: 10),
-                        Container(
-                          decoration: BoxDecoration(border: Border.all()),
-                          child: TextField(
-                            controller: contenidoEditar,
-                            textAlign: TextAlign.center,
-                            decoration: InputDecoration(
-                              hintText: 'Contenido',
+                        MaterialButton(
+                          onPressed: () async {
+                            await actualizar(
+                              tituloEditar.text,
+                              contenidoEditar.text,
+                              user!.uid,
+                            );
+                            Navigator.of(ctx).pop();
+                          },
+                          color: Colors.blue,
+                          child: Text(
+                            "Aceptar",
+                            style: TextStyle(
+                              color: Colors.white,
                             ),
-                            maxLines: null, // Expandable multiline text field
                           ),
                         ),
                       ],
                     ),
-                    actions: <Widget>[
-                      MaterialButton(
+                  );
+                },
+                child: Container(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ListTile(
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(
+                          color: Colors.white,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      tileColor: Color.fromARGB(171, 152, 209, 255),
+                      trailing: IconButton(
+                        icon: Icon(
+                          Icons.delete,
+                          color: Color.fromARGB(255, 255, 85, 72),
+                        ),
                         onPressed: () {
-                          Navigator.of(ctx).pop();
+                          datosRef.child(snapshot.key!).remove();
                         },
-                        color: Colors.blue,
-                        child: Text(
-                          "Cancelar",
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
+                      ),
+                      title: Text(
+                        dato[2],
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      MaterialButton(
-                        onPressed: () async {
-                          await actualizar(
-                            tituloEditar.text,
-                            contenidoEditar.text,
-                            user!.uid,
-                          );
-                          Navigator.of(ctx).pop();
-                        },
-                        color: Colors.blue,
-                        child: Text(
-                          "Aceptar",
-                          style: TextStyle(
-                            color: Colors.white,
-                          ),
+                      subtitle: Text(
+                        dato[0],
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ListTile(
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        color: Colors.white,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    tileColor: Color.fromARGB(171, 152, 209, 255),
-                    trailing: IconButton(
-                      icon: Icon(
-                        Icons.delete,
-                        color: Color.fromARGB(255, 255, 85, 72),
-                      ),
-                      onPressed: () {
-                        datosRef.child(snapshot.key!).remove();
-                      },
-                    ),
-                    title: Text(
-                      dato[2],
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    subtitle: Text(
-                      dato[0],
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
+              );
+            } else {
+              return SizedBox();
+            }
           } else {
             return SizedBox();
           }
@@ -200,7 +212,8 @@ class _InicioState extends State<Inicio> {
   }
 
   actualizar(String nuevoTitulo, String nuevoContenido, String userId) async {
-    DatabaseReference datosGRef = FirebaseDatabase.instance.reference().child("notas/$key_");
+    DatabaseReference datosGRef =
+        FirebaseDatabase.instance.reference().child("notas/$key_");
     await datosGRef.update({
       "Titulo": nuevoTitulo,
       "Contenido": nuevoContenido,
@@ -208,3 +221,7 @@ class _InicioState extends State<Inicio> {
     });
   }
 }
+
+
+
+
