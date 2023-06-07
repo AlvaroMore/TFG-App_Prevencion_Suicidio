@@ -77,7 +77,7 @@ class HomePage extends StatelessWidget{
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => notas()),
+          MaterialPageRoute(builder: (context) => Notas()),
         );
       }
     );
@@ -202,7 +202,7 @@ class HomePage extends StatelessWidget{
                         onPressed: (){
                           Navigator.push(
                             context, 
-                            MaterialPageRoute(builder: (context) => notas()),
+                            MaterialPageRoute(builder: (context) => Notas()),
                             );
                         },
                         child: Icon(Icons.edit_note, size: 70, color: Colors.black),

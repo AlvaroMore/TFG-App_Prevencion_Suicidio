@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:demo/paginas/notas.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:demo/modelos/nota.dart';
@@ -20,6 +21,8 @@ class NuevaNotaState extends State<NuevaNota> {
     var rng = Random();
     var key_ = rng.nextInt(10000);
     final datosRef = baseDatos.reference().child('notas/$key_');
+
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       appBar: AppBar(
@@ -66,13 +69,15 @@ class NuevaNotaState extends State<NuevaNota> {
                   titulo: titulo.text,
                   contenido: contenido.text,
                   fechaCreacion: DateTime.now(),
+                  userId: user?.uid ?? '',
                 );
                 datosRef.set({
                   "Titulo": nuevaNota.titulo,
                   "Contenido": nuevaNota.contenido,
                   "FechaCreacion": nuevaNota.fechaCreacion.toString(),
+                  "UserId": nuevaNota.userId,
                 }).asStream();
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => notas()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => Notas()));
               },
               child: Text(
                 "Guardar",

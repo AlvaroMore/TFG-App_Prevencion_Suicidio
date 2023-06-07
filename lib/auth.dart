@@ -12,10 +12,14 @@ class Auth {
     required String email,
     required String password,
   }) async {
-    await _firebaseAuth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } catch (e) {
+      throw Exception('Failed to sign in: $e');
+    }
   }
 
   Future<void> createUserWithEmailAndPassword({
@@ -23,22 +27,28 @@ class Auth {
     required String password,
     required String rol,
   }) async {
-    final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      final userCredential = await _firebaseAuth
+          .createUserWithEmailAndPassword(email: email, password: password);
 
-    // Guardar el rol en Realtime Database
-    if (userCredential.user != null) {
-      await FirebaseDatabase.instance
-          .reference()
-          .child('users')
-          .child(userCredential.user!.uid)
-          .update({'rol': rol});
+      // Guardar el rol en Realtime Database
+      if (userCredential.user != null) {
+        final databaseReference = FirebaseDatabase.instance.reference();
+        await databaseReference
+            .child('users')
+            .child(userCredential.user!.uid)
+            .update({'rol': rol});
+      }
+    } catch (e) {
+      throw Exception('Failed to create user: $e');
     }
   }
 
   Future<void> signOut() async {
-    await _firebaseAuth.signOut();
+    try {
+      await _firebaseAuth.signOut();
+    } catch (e) {
+      throw Exception('Failed to sign out: $e');
+    }
   }
 }

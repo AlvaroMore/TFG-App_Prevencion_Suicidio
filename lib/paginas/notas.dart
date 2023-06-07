@@ -1,15 +1,16 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:demo/modelos/nuevaNota.dart';
 
-class notas extends StatefulWidget {
+class Notas extends StatefulWidget {
   @override
   NotasState createState() => NotasState();
 }
 
-class NotasState extends State<notas> {
+class NotasState extends State<Notas> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -17,18 +18,18 @@ class NotasState extends State<notas> {
       theme: ThemeData(
         primaryColor: Colors.greenAccent[700],
       ),
-      home: inicio(),
+      home: Inicio(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class inicio extends StatefulWidget {
+class Inicio extends StatefulWidget {
   @override
-  _inicioState createState() => _inicioState();
+  _InicioState createState() => _InicioState();
 }
 
-class _inicioState extends State<inicio> {
+class _InicioState extends State<Inicio> {
   final baseDatos = FirebaseDatabase.instance;
   var dato;
   var valor;
@@ -37,6 +38,8 @@ class _inicioState extends State<inicio> {
   @override
   Widget build(BuildContext context) {
     final datosRef = baseDatos.reference().child('notas');
+
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
@@ -67,11 +70,11 @@ class _inicioState extends State<inicio> {
         shrinkWrap: true,
         itemBuilder: (context, snapshot, animation, index) {
           var valorString = snapshot.value.toString();
-          valor = valorString.replaceAll(RegExp("{|}|Contenido: |Titulo: |FechaCreacion: "), "");
+          valor = valorString.replaceAll(RegExp("{|}|Contenido: |Titulo: |FechaCreacion: |UserId: "), "");
           valor = valor.trim();
           dato = valor.split(',');
           if (dato.length >= 2) {
-            TextEditingController tituloEditar = TextEditingController(text: dato[1]);
+            TextEditingController tituloEditar = TextEditingController(text: dato[2]);
             TextEditingController contenidoEditar = TextEditingController(text: dato[0]);
 
             return GestureDetector(
@@ -99,7 +102,7 @@ class _inicioState extends State<inicio> {
                             decoration: InputDecoration(
                               hintText: 'Titulo',
                             ),
-                            maxLines: null,  // Expandable multiline text field
+                            maxLines: null, // Expandable multiline text field
                           ),
                         ),
                         SizedBox(height: 10),
@@ -111,7 +114,7 @@ class _inicioState extends State<inicio> {
                             decoration: InputDecoration(
                               hintText: 'Contenido',
                             ),
-                            maxLines: null,  // Expandable multiline text field
+                            maxLines: null, // Expandable multiline text field
                           ),
                         ),
                       ],
@@ -134,6 +137,7 @@ class _inicioState extends State<inicio> {
                           await actualizar(
                             tituloEditar.text,
                             contenidoEditar.text,
+                            user!.uid,
                           );
                           Navigator.of(ctx).pop();
                         },
@@ -170,7 +174,7 @@ class _inicioState extends State<inicio> {
                       },
                     ),
                     title: Text(
-                      dato[1],
+                      dato[2],
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -195,11 +199,12 @@ class _inicioState extends State<inicio> {
     );
   }
 
-  actualizar(String nuevoTitulo, String nuevoContenido) async {
+  actualizar(String nuevoTitulo, String nuevoContenido, String userId) async {
     DatabaseReference datosGRef = FirebaseDatabase.instance.reference().child("notas/$key_");
     await datosGRef.update({
       "Titulo": nuevoTitulo,
       "Contenido": nuevoContenido,
+      "UserId": userId,
     });
   }
 }
