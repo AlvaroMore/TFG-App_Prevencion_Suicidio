@@ -34,6 +34,31 @@ class _InicioState extends State<Inicio> {
   var dato;
   var valor;
   var key_;
+  var userRole;
+
+  Future<String> getUserRole(String userId) async {
+    final userRoleRef = baseDatos.reference().child('users/$userId/rol');
+    DatabaseEvent snapshot = await userRoleRef.once();
+    var snapshotValue = snapshot.snapshot.value;
+    return (snapshotValue as String?) ?? '';
+  }
+
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserRole();
+  }
+
+  void fetchUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String role = await getUserRole(user.uid);
+      setState(() {
+        userRole = role;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,8 +97,7 @@ class _InicioState extends State<Inicio> {
           final noteData = snapshot.value as Map<dynamic, dynamic>;
           final noteUserId = noteData['UserId'] as String;
 
-          // Check if the note belongs to the current user
-          if (noteUserId == user?.uid) {
+          if (userRole == "administrador" || noteUserId == user?.uid) {
             var valorString = noteData.toString();
             valor = valorString.replaceAll(
                 RegExp("{|}|Contenido: |Titulo: |FechaCreacion: |UserId: "), "");
@@ -111,7 +135,7 @@ class _InicioState extends State<Inicio> {
                               decoration: InputDecoration(
                                 hintText: 'Titulo',
                               ),
-                              maxLines: null, // Expandable multiline text field
+                              maxLines: null,
                             ),
                           ),
                           SizedBox(height: 10),
@@ -123,7 +147,7 @@ class _InicioState extends State<Inicio> {
                               decoration: InputDecoration(
                                 hintText: 'Contenido',
                               ),
-                              maxLines: null, // Expandable multiline text field
+                              maxLines: null,
                             ),
                           ),
                         ],
@@ -221,6 +245,7 @@ class _InicioState extends State<Inicio> {
     });
   }
 }
+
 
 
 
