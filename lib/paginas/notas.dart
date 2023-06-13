@@ -30,13 +30,13 @@ class Inicio extends StatefulWidget {
 }
 
 class _InicioState extends State<Inicio> {
-  final baseDatos = FirebaseDatabase.instance;
+  final baseDatos = FirebaseDatabase.instance; //Acceso a la base de datos
   var dato;
   var valor;
   var key_;
   var userRole;
 
-  Future<String> getUserRole(String userId) async {
+  Future<String> getUserRole(String userId) async { //Obtener el rol del usuario
     final userRoleRef = baseDatos.reference().child('users/$userId/rol');
     DatabaseEvent snapshot = await userRoleRef.once();
     var snapshotValue = snapshot.snapshot.value;
@@ -50,7 +50,7 @@ class _InicioState extends State<Inicio> {
     fetchUserRole();
   }
 
-  void fetchUserRole() async {
+  void fetchUserRole() async { //Establecer el rol del usuario actual
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String role = await getUserRole(user.uid);
@@ -62,7 +62,7 @@ class _InicioState extends State<Inicio> {
 
   @override
   Widget build(BuildContext context) {
-    final datosRef = baseDatos.reference().child('notas');
+    final datosRef = baseDatos.reference().child('notas');//Referencia a la base de datos
 
     final user = FirebaseAuth.instance.currentUser;
 
@@ -94,10 +94,10 @@ class _InicioState extends State<Inicio> {
         query: datosRef,
         shrinkWrap: true,
         itemBuilder: (context, snapshot, animation, index) {
-          final noteData = snapshot.value as Map<dynamic, dynamic>;
-          final noteUserId = noteData['UserId'] as String;
+          final noteData = snapshot.value as Map<dynamic, dynamic>;//Se establece los datos de la nota
+          final noteUserId = noteData['UserId'] as String;//Obtengo el userId de la nota
 
-          if (userRole == "administrador" || noteUserId == user?.uid) {
+          if (userRole == "administrador" || noteUserId == user?.uid) {//Si el usuario el administrador o tiene el mismo userId
             var valorString = noteData.toString();
             valor = valorString.replaceAll(
                 RegExp("{|}|Contenido: |Titulo: |FechaCreacion: |UserId: "), "");
@@ -105,10 +105,8 @@ class _InicioState extends State<Inicio> {
             dato = valor.split(',');
 
             if (dato.length >= 2) {
-              TextEditingController tituloEditar =
-                  TextEditingController(text: dato[2]);
-              TextEditingController contenidoEditar =
-                  TextEditingController(text: dato[0]);
+              TextEditingController tituloEditar = TextEditingController(text: dato[2]);
+              TextEditingController contenidoEditar = TextEditingController(text: dato[0]);
 
               return GestureDetector(
                 onTap: () {

@@ -32,7 +32,7 @@ class HomePage extends StatelessWidget{
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => calendario()),
+          MaterialPageRoute(builder: (context) => Calendario()),
         );
       }
     );
@@ -112,7 +112,7 @@ class HomePage extends StatelessWidget{
                         onPressed: (){
                           Navigator.push(
                             context, 
-                            MaterialPageRoute(builder: (context) => calendario()),
+                            MaterialPageRoute(builder: (context) => Calendario()),
                             );
                         },
                         child: Icon(Icons.calendar_today, size: 60, color: Colors.black),

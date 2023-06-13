@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget{
   Widget build(BuildContext context){
     return MaterialApp(
       routes: {
-        '/calendario':(context) => calendario(),
+        '/calendario':(context) => Calendario(),
         '/URL':(context) => enlace(),
         //'/Cerar_Sesion':(context) => ,
 

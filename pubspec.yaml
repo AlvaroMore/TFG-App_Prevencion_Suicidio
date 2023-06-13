@@ -28,8 +28,8 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependency_overrides:
-  firebase_core_platform_interface: 4.5.3
-  firebase_messaging: ^14.2.6
+  firebase_core_platform_interface: ^4.8.0
+  firebase_messaging: ^14.6.2
   
 dependencies:
   flutter:
@@ -46,6 +46,7 @@ dependencies:
   app_settings: ^4.2.0
   video_player: ^2.5.2
   firebase_database: ^10.0.15
+  table_calendar: ^3.0.9
 
 dev_dependencies:
   flutter_test:
