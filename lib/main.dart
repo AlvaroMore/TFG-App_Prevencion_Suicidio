@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:demo/paginas/calendario.dart';
 import 'package:demo/paginas/enlace.dart';
-import 'package:demo/paginas/login_register_page.dart';
 
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();

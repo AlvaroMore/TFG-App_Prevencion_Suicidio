@@ -5,6 +5,7 @@ import 'package:demo/modelos/nuevaCita.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:demo/modelos/cita.dart';
+import 'dart:async';
 
 class Calendario extends StatefulWidget {
   @override
@@ -75,6 +76,7 @@ class CalendarioState extends State<Calendario> {
         String userId = value['UserId'];
         String fechaInicio = value['FechaInicio'];
         String fechaFin = value['FechaFin'];
+        String nombreUsuario = value['NombreUsuario'];
         DateTime startTime = DateTime.parse(fechaInicio);
         DateTime endTime = DateTime.parse(fechaFin);
         if (userRole == "administrador" || userId == FirebaseAuth.instance.currentUser?.uid) {

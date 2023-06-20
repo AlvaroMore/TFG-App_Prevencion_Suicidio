@@ -26,18 +26,18 @@ class Auth {
     required String email,
     required String password,
     required String rol,
+    required String usuario,
   }) async {
     try {
       final userCredential = await _firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      // Guardar el rol en Realtime Database
       if (userCredential.user != null) {
         final databaseReference = FirebaseDatabase.instance.reference();
         await databaseReference
             .child('users')
             .child(userCredential.user!.uid)
-            .update({'rol': rol});
+            .update({'rol': rol, 'usuario': usuario});
       }
     } catch (e) {
       throw Exception('Failed to create user: $e');

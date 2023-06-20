@@ -1,3 +1,4 @@
+import 'package:demo/paginas/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -67,6 +68,18 @@ class _InicioState extends State<Inicio> {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Notas'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: (){
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => HomePage())
+              );
+          },
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
         onPressed: () {
@@ -81,15 +94,7 @@ class _InicioState extends State<Inicio> {
           Icons.add,
         ),
       ),
-      appBar: AppBar(
-        title: Text(
-          'Notas',
-          style: TextStyle(
-            fontSize: 20,
-          ),
-        ),
-        backgroundColor: Colors.blue,
-      ),
+      
       body: FirebaseAnimatedList(
         query: datosRef,
         shrinkWrap: true,

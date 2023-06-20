@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:demo/paginas/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -7,6 +8,20 @@ class media extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Media'),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: (){
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => HomePage())
+                );
+            },
+          ),
+        ),
+      );
     return const MaterialApp(
       title: 'Video Player Demo',
       home: VideoPlayerScreen(),

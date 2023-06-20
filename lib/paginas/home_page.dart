@@ -1,5 +1,6 @@
 import 'package:demo/paginas/enlace.dart';
 import 'package:demo/paginas/ajustes.dart';
+import 'package:demo/paginas/login_page.dart';
 import 'package:demo/paginas/media.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:demo/auth.dart';
@@ -7,13 +8,21 @@ import 'package:flutter/material.dart';
 import 'package:demo/paginas/calendario.dart';
 import 'package:app_settings/app_settings.dart';
 import 'package:demo/paginas/notas.dart';
+import 'dart:io';
+
 
 class HomePage extends StatelessWidget{
   HomePage({Key? key}) : super(key: key);
   final User? user = Auth().currentUser;
-  Future<void> signOut() async{
-    await Auth().signOut();
+  Future<void> signOut() async {
+    try {
+      await Auth().signOut();
+      exit(0);
+    } catch (e) {
+      throw Exception('Failed to sign out: $e');
+    }
   }
+
   Widget _title(){
     return const Text('Inicio');
   }
@@ -88,9 +97,9 @@ class HomePage extends StatelessWidget{
     return Scaffold(
       appBar: AppBar(
         title: _title(),
-        
+        automaticallyImplyLeading: false,
       ),
-      // ignore: avoid_unnecessary_containers
+      
       body: Container(
         padding: const EdgeInsets.only(
           top: 75,
@@ -243,7 +252,12 @@ class HomePage extends StatelessWidget{
                       height: 115,
                       width: 115,
                       child: ElevatedButton(
-                        onPressed: signOut,
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => const LoginPage()),
+                              );
+                            },
                         child: Icon(Icons.logout, size: 50, color: Colors.black),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red  ,

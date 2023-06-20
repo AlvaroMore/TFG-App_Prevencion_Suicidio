@@ -24,6 +24,8 @@ class NuevaCitaState extends State<NuevaCita> {
   late DateTime fechaFin;
   DateFormat dateFormat = DateFormat('dd-MM-yyyy');
   DateFormat timeFormat = DateFormat('HH:mm');
+  List<String> usersList = [];
+  String selectedUser = '';
 
   @override
   void initState() {
@@ -37,6 +39,17 @@ class NuevaCitaState extends State<NuevaCita> {
       fechaInicio = DateTime.now();
       fechaFin = DateTime.now();
     }
+    DatabaseReference usersRef = _database.reference().child('users');
+      usersRef.once().then((DatabaseEvent snapshot) {
+        Map<dynamic, dynamic> usersMap = snapshot.snapshot.value as Map<dynamic, dynamic>;
+        print(usersMap);
+        if (usersMap != null) {
+          usersList = usersMap.entries.map((e) => e.value['usuario']).toSet().toList().cast<String>();
+          setState(() {
+            selectedUser = usersList.isNotEmpty ? usersList[0] : '';
+          });
+        }
+      });
   }
 
   void guardarCita() {
@@ -62,6 +75,7 @@ class NuevaCitaState extends State<NuevaCita> {
         "FechaInicio": appointment.startTime.toString(),
         "FechaFin": appointment.endTime.toString(),
         "UserId": user?.uid ?? '',
+        "NombreUsuario": selectedUser,
       }).asStream();
       citaPulsada.subject = appointment.subject;
       citaPulsada.startTime = appointment.startTime;
@@ -73,6 +87,7 @@ class NuevaCitaState extends State<NuevaCita> {
         "FechaInicio": appointment.startTime.toString(),
         "FechaFin": appointment.endTime.toString(),
         "UserId": user?.uid ?? '',
+        "NombreUsuario": selectedUser,
       }).asStream();
       widget.appointments.add(appointment);
     }
@@ -212,6 +227,24 @@ class NuevaCitaState extends State<NuevaCita> {
               ],
             ),
             SizedBox(height: 16.0),
+            Center(
+              child: DropdownButton<String>(
+                value: selectedUser,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedUser = newValue!;
+                  });
+                },
+                items: usersList.map((String user) {
+                  return DropdownMenuItem<String>(
+                    value: user,
+                    child: Text(user),
+                  );
+                }).toList(),
+                hint: Text('Seleccione un usuario'),
+              ),
+            ),
+            SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: guardarCita,
               child: Text('Guardar'),
@@ -222,7 +255,6 @@ class NuevaCitaState extends State<NuevaCita> {
     );
   }
 }
-
 
 
 
