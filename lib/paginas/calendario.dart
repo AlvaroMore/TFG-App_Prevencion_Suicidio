@@ -67,38 +67,61 @@ class CalendarioState extends State<Calendario> {
     }
   }
 
+  Future<String?> fetchUserIdFromNombreUsuario(String nombreUsuario) async {
+    final usuariosRef = baseDatos.reference().child('users');
+    DatabaseEvent dataSnapshot = await usuariosRef.orderByChild('usuario').equalTo(nombreUsuario).limitToFirst(1).once();
+    Map<dynamic, dynamic> usersData = dataSnapshot.snapshot.value as Map<dynamic, dynamic>;
+
+    if (usersData != null) {
+      String userId = usersData.keys.first as String;
+      return userId;
+    }
+
+    return null;
+  }
+
   void cargaCitas() {
     final citas = baseDatos.reference().child('citas');
-    citas.onChildAdded.listen((event) {
-      Map<dynamic, dynamic> value = event.snapshot.value as Map<dynamic, dynamic>;
-      if (value != null) {
-        String? id = event.snapshot.key!;
-        String titulo = value['Titulo'];
-        String userId = value['UserId'];
-        String fechaInicio = value['FechaInicio'];
-        String fechaFin = value['FechaFin'];
-        String nombreUsuario = value['NombreUsuario'];
-        DateTime startTime = DateTime.parse(fechaInicio);
-        DateTime endTime = DateTime.parse(fechaFin);
-        if (userRole == "administrador" || userId == FirebaseAuth.instance.currentUser?.uid) {
-          bool isDuplicate = appointments.any((appointment) {
-            return appointment.subject == titulo &&
-                appointment.startTime == startTime &&
-                appointment.endTime == endTime;
+    citas.onValue.listen((event) {
+      DataSnapshot dataSnapshot = event.snapshot;
+      Map<dynamic, dynamic>? citasData = dataSnapshot.value as Map<dynamic, dynamic>?;
+
+      if (citasData != null) {
+        citasData.forEach((key, value) {
+          String? id = key;
+          String titulo = value['Titulo'];
+          String userId = value['UserId'];
+          String fechaInicio = value['FechaInicio'];
+          String fechaFin = value['FechaFin'];
+          String nombreUsuario = value['NombreUsuario'];
+          DateTime startTime = DateTime.parse(fechaInicio);
+          DateTime endTime = DateTime.parse(fechaFin);
+
+          // Fetch the user ID based on the NombreUsuario
+          fetchUserIdFromNombreUsuario(nombreUsuario).then((selectedUserId) {
+            if (selectedUserId != null && (userRole == "administrador" || userId == FirebaseAuth.instance.currentUser?.uid || selectedUserId == FirebaseAuth.instance.currentUser?.uid)) {
+              bool isDuplicate = appointments.any((appointment) {
+                return appointment.subject == titulo &&
+                    appointment.startTime == startTime &&
+                    appointment.endTime == endTime;
+              });
+
+              if (!isDuplicate) {
+                // Display the appointment if it's either for the selected user, the administrator, or the creator of the appointment
+                appointments.add(Appointment(
+                  id: id,
+                  startTime: startTime,
+                  endTime: endTime,
+                  subject: titulo,
+                  color: Colors.blue,
+                ));
+                DataSource dataSource = DataSource(appointments);
+                dataSource.actualizarCita(appointments);
+                setState(() {});
+              }
+            }
           });
-          if (!isDuplicate) {
-            appointments.add(Appointment(
-              id: id,
-              startTime: startTime,
-              endTime: endTime,
-              subject: titulo,
-              color: Colors.blue,
-            ));
-            DataSource dataSource = DataSource(appointments);
-            dataSource.actualizarCita(appointments);
-          }
-        }
-        setState(() {});
+        });
       }
     });
     citas.onChildRemoved.listen((event) {
