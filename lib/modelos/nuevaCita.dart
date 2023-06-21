@@ -20,6 +20,9 @@ class NuevaCitaState extends State<NuevaCita> {
   final _database = FirebaseDatabase.instance;
   final TextEditingController tituloController = TextEditingController();
   final user = FirebaseAuth.instance.currentUser;
+  final baseDatos = FirebaseDatabase.instance;
+  // ignore: prefer_typing_uninitialized_variables
+  var userRole;
   late DateTime fechaInicio;
   late DateTime fechaFin;
   DateFormat dateFormat = DateFormat('dd-MM-yyyy');
@@ -50,6 +53,24 @@ class NuevaCitaState extends State<NuevaCita> {
           });
         }
       });
+      fetchUserRole();
+  }
+
+  Future<String> getUserRole(String userId) async {
+    final userRoleRef = baseDatos.reference().child('users/$userId/rol');
+    DatabaseEvent snapshot = await userRoleRef.once();
+    var snapshotValue = snapshot.snapshot.value;
+    return (snapshotValue as String?) ?? '';
+  }
+
+  Future<void> fetchUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String role = await getUserRole(user.uid);
+      setState(() {
+        userRole = role;
+      });
+    }
   }
 
   void guardarCita() {
@@ -227,6 +248,7 @@ class NuevaCitaState extends State<NuevaCita> {
               ],
             ),
             SizedBox(height: 16.0),
+            if (userRole == "administrador")
             Center(
               child: DropdownButton<String>(
                 value: selectedUser,

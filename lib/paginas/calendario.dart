@@ -33,6 +33,7 @@ class CalendarioState extends State<Calendario> {
   final baseDatos = FirebaseDatabase.instance;
   bool datosCargados = false;
   String? citaSeleccionadaId;
+  // ignore: prefer_typing_uninitialized_variables
   var userRole;
 
   @override
@@ -250,7 +251,7 @@ class CalendarioState extends State<Calendario> {
     }
   }
 
-  void eliminarCita(String appointmentId) {
+  void eliminarCita(dynamic appointmentId) {
     baseDatos.reference().child('citas').child(appointmentId).remove();
   }
 }
