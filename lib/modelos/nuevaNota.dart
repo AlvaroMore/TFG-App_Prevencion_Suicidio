@@ -26,8 +26,16 @@ class NuevaNotaState extends State<NuevaNota> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Nueva Nota"),
-        backgroundColor: Colors.blue,
+        title: Text('Nueva Nota'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: (){
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => Notas())
+              );
+          },
+        ),
       ),
       body: Container(
         child: Column(

@@ -23,6 +23,7 @@ class NuevaCitaState extends State<NuevaCita> {
   final baseDatos = FirebaseDatabase.instance;
   // ignore: prefer_typing_uninitialized_variables
   var userRole;
+  bool showUserDropdown = false;
   late DateTime fechaInicio;
   late DateTime fechaFin;
   DateFormat dateFormat = DateFormat('dd-MM-yyyy');
@@ -69,6 +70,7 @@ class NuevaCitaState extends State<NuevaCita> {
       String role = await getUserRole(user.uid);
       setState(() {
         userRole = role;
+        showUserDropdown = (userRole == 'administrador');
       });
     }
   }
@@ -248,23 +250,24 @@ class NuevaCitaState extends State<NuevaCita> {
               ],
             ),
             SizedBox(height: 16.0),
-            if (userRole == "administrador")
             Center(
-              child: DropdownButton<String>(
-                value: selectedUser,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedUser = newValue!;
-                  });
-                },
-                items: usersList.map((String user) {
-                  return DropdownMenuItem<String>(
-                    value: user,
-                    child: Text(user),
-                  );
-                }).toList(),
-                hint: Text('Seleccione un usuario'),
-              ),
+              child: showUserDropdown
+                  ? DropdownButton<String>(
+                      value: selectedUser,
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedUser = newValue!;
+                        });
+                      },
+                      items: usersList.map((String user) {
+                        return DropdownMenuItem<String>(
+                          value: user,
+                          child: Text(user),
+                        );
+                      }).toList(),
+                      hint: Text('Seleccione un usuario'),
+                    )
+                  : SizedBox(),
             ),
             SizedBox(height: 16.0),
             ElevatedButton(

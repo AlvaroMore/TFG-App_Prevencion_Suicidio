@@ -9,11 +9,36 @@ import 'package:demo/paginas/calendario.dart';
 import 'package:app_settings/app_settings.dart';
 import 'package:demo/paginas/notas.dart';
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 
-class HomePage extends StatelessWidget{
+class HomePage extends StatefulWidget{
   HomePage({Key? key}) : super(key: key);
+
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   final User? user = Auth().currentUser;
+
+  Future<void> storeDeviceToken() async {
+    final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+
+    final String deviceToken = (await firebaseMessaging.getToken())!;
+
+    final DatabaseReference deviceTokenRef =
+        FirebaseDatabase.instance.reference().child('users/${user?.uid}/token');
+    deviceTokenRef.set(deviceToken);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    storeDeviceToken();
+  }
+
   Future<void> signOut() async {
     try {
       await Auth().signOut();

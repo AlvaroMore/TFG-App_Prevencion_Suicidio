@@ -97,7 +97,6 @@ class CalendarioState extends State<Calendario> {
           DateTime startTime = DateTime.parse(fechaInicio);
           DateTime endTime = DateTime.parse(fechaFin);
 
-          // Fetch the user ID based on the NombreUsuario
           fetchUserIdFromNombreUsuario(nombreUsuario).then((selectedUserId) {
             if (selectedUserId != null && (userRole == "administrador" || userId == FirebaseAuth.instance.currentUser?.uid || selectedUserId == FirebaseAuth.instance.currentUser?.uid)) {
               bool isDuplicate = appointments.any((appointment) {
@@ -107,7 +106,6 @@ class CalendarioState extends State<Calendario> {
               });
 
               if (!isDuplicate) {
-                // Display the appointment if it's either for the selected user, the administrator, or the creator of the appointment
                 appointments.add(Appointment(
                   id: id,
                   startTime: startTime,
@@ -118,6 +116,8 @@ class CalendarioState extends State<Calendario> {
                 DataSource dataSource = DataSource(appointments);
                 dataSource.actualizarCita(appointments);
                 setState(() {});
+
+                dataSource.notifyListeners(CalendarDataSourceAction.add, [appointments.last]);
               }
             }
           });
