@@ -44,17 +44,17 @@ class NuevaCitaState extends State<NuevaCita> {
       fechaFin = DateTime.now();
     }
     DatabaseReference usersRef = _database.reference().child('users');
-      usersRef.once().then((DatabaseEvent snapshot) {
-        Map<dynamic, dynamic> usersMap = snapshot.snapshot.value as Map<dynamic, dynamic>;
-        print(usersMap);
-        if (usersMap != null) {
-          usersList = usersMap.entries.map((e) => e.value['usuario']).toSet().toList().cast<String>();
-          setState(() {
-            selectedUser = usersList.isNotEmpty ? usersList[0] : '';
-          });
-        }
-      });
-      fetchUserRole();
+    usersRef.once().then((DatabaseEvent snapshot) {
+      Map<dynamic, dynamic> usersMap = snapshot.snapshot.value as Map<dynamic, dynamic>;
+      print(usersMap);
+      if (usersMap != null) {
+        usersList = usersMap.entries.map((e) => e.value['usuario']).toSet().toList().cast<String>();
+        setState(() {
+          selectedUser = usersList.isNotEmpty ? usersList[0] : '';
+        });
+      }
+    });
+    fetchUserRole();
   }
 
   Future<String> getUserRole(String userId) async {
@@ -126,6 +126,7 @@ class NuevaCitaState extends State<NuevaCita> {
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
               controller: tituloController,
@@ -134,33 +135,38 @@ class NuevaCitaState extends State<NuevaCita> {
               ),
             ),
             SizedBox(height: 16.0),
+            TextField(
+              readOnly: true,
+              onTap: () async {
+                DateTime? pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime(DateTime.now().year + 5),
+                );
+                if (pickedDate != null) {
+                  setState(() {
+                    fechaInicio = pickedDate;
+                    fechaFin = DateTime(
+                      pickedDate.year,
+                      pickedDate.month,
+                      pickedDate.day,
+                      fechaFin.hour,
+                      fechaFin.minute,
+                    );
+                  });
+                }
+              },
+              decoration: InputDecoration(
+                labelText: 'Fecha Inicio',
+              ),
+              controller: TextEditingController(
+                text: fechaInicio != null ? dateFormat.format(fechaInicio) : '',
+              ),
+            ),
+            SizedBox(height: 16.0),
             Row(
               children: [
-                Expanded(
-                  child: TextField(
-                    readOnly: true,
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(DateTime.now().year + 5),
-                      );
-                      if (pickedDate != null) {
-                        setState(() {
-                          fechaInicio = pickedDate;
-                        });
-                      }
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'Fecha Inicio',
-                    ),
-                    controller: TextEditingController(
-                      text: fechaInicio != null ? dateFormat.format(fechaInicio) : '',
-                    ),
-                  ),
-                ),
-                SizedBox(width: 16.0),
                 Expanded(
                   child: TextField(
                     readOnly: true,
@@ -186,35 +192,6 @@ class NuevaCitaState extends State<NuevaCita> {
                     ),
                     controller: TextEditingController(
                       text: fechaInicio != null ? timeFormat.format(fechaInicio) : '',
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 16.0),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    readOnly: true,
-                    onTap: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(DateTime.now().year + 5),
-                      );
-                      if (pickedDate != null) {
-                        setState(() {
-                          fechaFin = pickedDate;
-                        });
-                      }
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'Fecha Fin',
-                    ),
-                    controller: TextEditingController(
-                      text: fechaFin != null ? dateFormat.format(fechaFin) : '',
                     ),
                   ),
                 ),
@@ -250,25 +227,23 @@ class NuevaCitaState extends State<NuevaCita> {
               ],
             ),
             SizedBox(height: 16.0),
-            Center(
-              child: showUserDropdown
-                  ? DropdownButton<String>(
-                      value: selectedUser,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedUser = newValue!;
-                        });
-                      },
-                      items: usersList.map((String user) {
-                        return DropdownMenuItem<String>(
-                          value: user,
-                          child: Text(user),
-                        );
-                      }).toList(),
-                      hint: Text('Seleccione un usuario'),
-                    )
-                  : SizedBox(),
-            ),
+            showUserDropdown
+                ? DropdownButton<String>(
+                    value: selectedUser,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedUser = newValue!;
+                      });
+                    },
+                    items: usersList.map((String user) {
+                      return DropdownMenuItem<String>(
+                        value: user,
+                        child: Text(user),
+                      );
+                    }).toList(),
+                    hint: Text('Seleccione un usuario'),
+                  )
+                : SizedBox(),
             SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: guardarCita,
@@ -280,6 +255,7 @@ class NuevaCitaState extends State<NuevaCita> {
     );
   }
 }
+
 
 
 

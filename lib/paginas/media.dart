@@ -31,7 +31,7 @@ class media extends StatelessWidget {
             SizedBox(height: 16),
             FolderButton(
               title: 'VIDEOS',
-              image: AssetImage('assets/imagenes.png'),
+              image: AssetImage('assets/videos.png'),
               onPressed: () {
                 Navigator.push(
                   context,

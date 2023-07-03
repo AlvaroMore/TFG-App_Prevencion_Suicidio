@@ -278,12 +278,3 @@ class CalendarioState extends State<Calendario> {
     baseDatos.reference().child('citas').child(appointmentId).remove();
   }
 }
-
-
-
-
-
-
-
-
-
