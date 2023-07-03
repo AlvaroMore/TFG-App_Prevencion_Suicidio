@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:demo/modelos/nota.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class NuevaNota extends StatefulWidget {
   @override
