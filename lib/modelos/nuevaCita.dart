@@ -5,6 +5,10 @@ import 'package:demo/modelos/cita.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 
 class NuevaCita extends StatefulWidget {
   final int? citaIndex;
@@ -30,10 +34,16 @@ class NuevaCitaState extends State<NuevaCita> {
   DateFormat timeFormat = DateFormat('HH:mm');
   List<String> usersList = [];
   String selectedUser = '';
+  String? adminToken;
 
   @override
   void initState() {
     super.initState();
+    fetchAdminToken();
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    String? title = message.notification!.title;
+    String? body = message.notification!.body;
+    });
     if (widget.citaIndex != null) {
       Appointment appointment = widget.appointments[widget.citaIndex!];
       fechaInicio = appointment.startTime;
@@ -55,6 +65,32 @@ class NuevaCitaState extends State<NuevaCita> {
       }
     });
     fetchUserRole();
+  }
+
+  Future<void> fetchAdminToken() async {
+    final usersRef = baseDatos.reference().child('users');
+    final DatabaseEvent dataSnapshot = await usersRef.once();
+    
+    final usuarios = dataSnapshot.snapshot.value as Map<dynamic, dynamic>;
+
+    String? adminUserId;
+    
+    // Buscar el usuario con el rol de administrador
+    usuarios.forEach((userId, userData) {
+      final rol = userData['rol'] as String?;
+      if (rol == 'administrador') {
+        adminUserId = userId;
+        return;
+      }
+    });
+
+    if (adminUserId != null) {
+      final adminTokenRef = baseDatos.reference().child('users/$adminUserId/token');
+      final DatabaseEvent tokenSnapshot = await adminTokenRef.once();
+      adminToken = tokenSnapshot.snapshot.value as String?;
+    }
+
+    setState(() {});
   }
 
   Future<String> getUserRole(String userId) async {
@@ -115,6 +151,7 @@ class NuevaCitaState extends State<NuevaCita> {
       widget.appointments.add(appointment);
     }
     Navigator.pop(context);
+    sendPushNotification();
   }
 
   @override
@@ -246,13 +283,63 @@ class NuevaCitaState extends State<NuevaCita> {
                 : SizedBox(),
             SizedBox(height: 16.0),
             ElevatedButton(
-              onPressed: guardarCita,
+              onPressed: (){
+                guardarCita();
+              },
               child: Text('Guardar'),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> sendPushNotification() async {
+    try {
+      http.Response response = await http.post(
+        Uri.parse('https://fcm.googleapis.com/fcm/send'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'key=AAAAwExjmR0:APA91bGDItwHFI6kNHxmcHM9cCrUwcEhKnjWOCYhllfHXiUZY-RklTRMr-ieHciAKvWiRoephqgNGtCaOwSQ896IZJOj2wce-_IM9oDSApNg6Xx_3f1hV8sIrj7aiTtprwX4VVVSIn6R',
+        },
+        body: jsonEncode(
+          <String, dynamic>{
+            'notification': <String, dynamic>{
+              'body': "Se ha creado una nueva cita",
+              'title': 'Nueva cita',
+            },
+            'priority': 'high',
+            'data': <String, dynamic>{
+              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
+              'id': '1',
+              'status': 'done'
+            },
+            'to': await getUserToken(selectedUser),
+          },
+        ),
+      );
+      response;
+    } catch (e) {
+      e;
+    }
+  }
+
+  Future<String> getUserToken(String? selectedUser) async {
+    if (userRole == 'administrador') {
+      // Fetch the selected user's token from the database based on the selectedUser
+      DatabaseReference userRef = _database.reference().child('users');
+      DatabaseEvent snapshot = await userRef.orderByChild('usuario').equalTo(selectedUser).once();
+      Map<dynamic, dynamic> userData = snapshot.snapshot.value as Map<dynamic, dynamic>;
+      if (userData != null && userData.isNotEmpty) {
+        String userId = userData.keys.first.toString();
+        String userToken = userData[userId]['token'];
+        return userToken ?? '';
+      }
+    } else {
+      // Return the admin's token
+      return adminToken ?? '';
+    }
+    return '';
   }
 }
 

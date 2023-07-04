@@ -27,7 +27,6 @@ class NuevaNotaState extends State<NuevaNota> {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       String? title = message.notification!.title;
       String? body = message.notification!.body;
-      // Aquí puedes realizar alguna acción con la notificación recibida
     });
   }
 
