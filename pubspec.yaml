@@ -54,7 +54,9 @@ dependencies:
   chewie: ^1.5.0
   video_thumbnail: ^0.5.2
   flutter_ffmpeg: ^0.4.2
-
+  flutter_local_notifications: ^15.0.0
+  http: ^0.13.5
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
