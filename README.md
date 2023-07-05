@@ -1,16 +1,17 @@
-# demo
+# TFG Aplicación para la prevención del suicidio: APPBU-S
 
-A new Flutter project.
+Este TFG se basa en el desarrollo de una aplicación móvil mediante Flutter y las herramientas de Firebase. Cuenta con una serie de funcionalidades básicas:
 
-## Getting Started
+- Autenticación: Tiene integrado un sistema de autenticación, que permite el registro y acceso de usuarios. Integrado con Firebase Authentication.
+- Calendario: Cuenta con un calendario, capaz de crear, editar y eliminar citas. Dichas citas se almacenan en Firebase Realtime Database y permiten su visualización en la aplicación.
+- Multimedia: Permite la subida de imágenes y vídeos a los usuarios, los cuales son almacenados en Firebase Cloud Storage.
+- Enlaces: Tiene una funcionalidad de enlaces a páginas web, donde los usuarios pueden encontrar información relevante.
+- Bloc de notas: Cuenta con un bloc de notas que permite la creación, edición y borrado de notas. Dichas notas se almacenan en Firebase Realtime Database, para su posterior visualización en la aplicación.
+- Notificaciones: Cuenta con un sistema de notificaciones integrado mediante Firebase Cloud Messaging. Está incluido en el Calendario y el Bloc de notas.
 
-This project is a starting point for a Flutter application.
+Los archivos del proyecto están en la carpeta lib de este repositorio.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+** Autor: Álvaro Moreno Palmero
+** Tutores: Pedro Latorre Carmona y Ana Serrano Mamolar
+** Titulación: Ingeniería de la Salud
+** Lugar: Universidad de Burgos
