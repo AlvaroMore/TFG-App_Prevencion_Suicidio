@@ -14,4 +14,4 @@ Los archivos del proyecto están en la carpeta lib de este repositorio.
 **Autor:** Álvaro Moreno Palmero \
 **Tutores:** Pedro Latorre Carmona y Ana Serrano Mamolar \
 **Titulación:** Ingeniería de la Salud \
-**Lugar:** Universidad de Burgos \
+**Lugar:** Universidad de Burgos
