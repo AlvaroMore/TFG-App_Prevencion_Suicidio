@@ -11,7 +11,7 @@ Este TFG se basa en el desarrollo de una aplicación móvil mediante Flutter y l
 
 Los archivos del proyecto están en la carpeta lib de este repositorio.
 
-** Autor: Álvaro Moreno Palmero
-** Tutores: Pedro Latorre Carmona y Ana Serrano Mamolar
-** Titulación: Ingeniería de la Salud
-** Lugar: Universidad de Burgos
+**Autor:** Álvaro Moreno Palmero
+**Tutores:** Pedro Latorre Carmona y Ana Serrano Mamolar
+**Titulación:** Ingeniería de la Salud
+**Lugar:** Universidad de Burgos
