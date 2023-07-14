@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'package:demo/modelos/imagenes.dart';
-import 'package:demo/modelos/videos.dart';
-import 'package:demo/paginas/home_page.dart';
+import 'package:appbu_s/modelos/imagenes.dart';
+import 'package:appbu_s/modelos/videos.dart';
+import 'package:appbu_s/paginas/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 

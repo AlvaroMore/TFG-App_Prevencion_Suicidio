@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:demo/modelos/nuevaCita.dart';
+import 'package:appbu_s/modelos/nuevaCita.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-import 'package:demo/modelos/cita.dart';
+import 'package:appbu_s/modelos/cita.dart';
 import 'dart:async';
 
 class Calendario extends StatefulWidget {

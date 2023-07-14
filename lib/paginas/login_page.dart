@@ -1,4 +1,4 @@
-import 'package:demo/paginas/home_page.dart';
+import 'package:appbu_s/paginas/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../auth.dart';
@@ -18,23 +18,50 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
 
-  Future<void> signInWithEmailAndPassword() async {
-    try {
-      await Auth().signInWithEmailAndPassword(
-        email: _controllerEmail.text,
-        password: _controllerPassword.text,
-      );
-      
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-      );
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        errorMessage = e.message;
-      });
-    }
+  Widget _errorMessage() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      child: Text(
+        errorMessage == '' ? '' : '$errorMessage',
+        style: const TextStyle(
+          color: Colors.red,
+        ),
+      ),
+    );
   }
+
+  Future<void> signInWithEmailAndPassword() async {
+    String errorMessage = '';
+
+    if (_controllerEmail.text.isEmpty ||
+        _controllerPassword.text.isEmpty) {
+      errorMessage = 'Falta información en algún campo';
+    } else {
+      try {
+        await Auth().signInWithEmailAndPassword(
+          email: _controllerEmail.text,
+          password: _controllerPassword.text,
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'user-not-found') {
+          errorMessage = 'El correo introducido no está registrado.';
+        } else if (e.code == 'wrong-password') {
+          errorMessage = 'Contraseña incorrecta.';
+        }
+      } catch (e) {
+        errorMessage = 'Correo o contraseña incorrectos';
+      }
+    }
+    setState(() {
+      this.errorMessage = errorMessage;
+    });
+  }
+
+
 
   Widget _title() {
     return const Text('APPBU-S');
@@ -47,10 +74,6 @@ class _LoginPageState extends State<LoginPage> {
         labelText: title,
       ),
     );
-  }
-
-  Widget _errorMessage() {
-    return Text(errorMessage == '' ? '' : 'Hmm? $errorMessage');
   }
 
   Widget _submitButton() {

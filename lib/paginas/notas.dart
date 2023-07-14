@@ -1,10 +1,10 @@
-import 'package:demo/paginas/home_page.dart';
+import 'package:appbu_s/paginas/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
-import 'package:demo/modelos/nuevaNota.dart';
+import 'package:appbu_s/modelos/nuevaNota.dart';
 
 class Notas extends StatefulWidget {
   @override

@@ -1,20 +1,17 @@
-import 'package:demo/paginas/enlace.dart';
-import 'package:demo/widget_tree.dart';
+import 'package:appbu_s/paginas/enlace.dart';
+import 'package:appbu_s/paginas/login_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:demo/paginas/calendario.dart';
-import 'package:demo/paginas/enlace.dart';
+import 'package:appbu_s/paginas/calendario.dart';
+import 'package:appbu_s/paginas/enlace.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-Future<void> backgroundHandler(RemoteMessage message) async{
+Future<void> backgroundHandler(RemoteMessage message) async {
   String? title = message.notification!.title;
   String? body = message.notification!.body;
-
 }
 
-Future<void> main() async{
-  
-
+Future<void> main() async {
   FirebaseMessaging.onBackgroundMessage(backgroundHandler);
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,24 +19,21 @@ Future<void> main() async{
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget{
+class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return MaterialApp(
       routes: {
-        '/calendario':(context) => Calendario(),
-        '/URL':(context) => enlace(),
-        //'/Cerar_Sesion':(context) => ,
-
-
+        '/calendario': (context) => Calendario(),
+        '/URL': (context) => enlace(),
       },
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const WidgetTree(),
+      home: const LoginPage(),
     );
   }
 }

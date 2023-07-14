@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:demo/modelos/cita.dart';
+import 'package:appbu_s/modelos/cita.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
@@ -333,7 +333,7 @@ class NuevaCitaState extends State<NuevaCita> {
       if (userData != null && userData.isNotEmpty) {
         String userId = userData.keys.first.toString();
         String userToken = userData[userId]['token'];
-        return userToken ?? '';
+        return userToken;
       }
     } else {
       // Return the admin's token

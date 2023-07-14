@@ -1,4 +1,4 @@
-import 'package:demo/paginas/login_page.dart';
+import 'package:appbu_s/paginas/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../auth.dart';
@@ -32,28 +32,51 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget _errorMessage() {
-    return Text(errorMessage == '' ? '' : 'Humm ? $errorMessage');
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      child: Text(
+        errorMessage == '' ? '' : '$errorMessage',
+        style: const TextStyle(
+          color: Colors.red,
+        ),
+      ),
+    );
   }
 
   Future<void> createUsersWithEmailAndPassword() async {
-    try {
-      await Auth().createUserWithEmailAndPassword(
-        usuario: _controllerUsuario.text,
-        email: _controllerEmail.text,
-        password: _controllerPassword.text,
-        rol: selectedRole ?? 'usuario',
-      );
+    String errorMessage = '';
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-      );
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        errorMessage = e.message;
-      });
+    if (_controllerUsuario.text.isEmpty ||
+        _controllerEmail.text.isEmpty ||
+        _controllerPassword.text.isEmpty) {
+      errorMessage = 'Falta información en algún campo';
+    } else if (_controllerPassword.text.length < 6) {
+      errorMessage = 'La contraseña debe tener 6 o más caracteres';
+    } else {
+      try {
+        await Auth().createUserWithEmailAndPassword(
+          usuario: _controllerUsuario.text,
+          email: _controllerEmail.text,
+          password: _controllerPassword.text,
+          rol: selectedRole ?? 'usuario',
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'email-already-in-use') {
+          errorMessage = 'El correo introducido ya está registrado';
+        }
+      } catch (e) {
+        errorMessage = 'El correo introducido ya está registrado';
+      }
     }
+    setState(() {
+      this.errorMessage = errorMessage;
+    });
   }
+
 
   Widget _submitButton() {
     return ElevatedButton(
