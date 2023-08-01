@@ -27,7 +27,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       routes: {
         '/calendario': (context) => Calendario(),
-        '/URL': (context) => enlace(),
       },
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
