@@ -1,9 +1,8 @@
-import 'dart:async';
 import 'package:appbu_s/modelos/imagenes.dart';
 import 'package:appbu_s/modelos/videos.dart';
-import 'package:appbu_s/paginas/home_page.dart';
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'package:appbu_s/modelos/musica.dart';
+import 'package:appbu_s/modelos/frases.dart';
 
 class media extends StatelessWidget {
   @override
@@ -14,32 +13,81 @@ class media extends StatelessWidget {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            FolderButton(
-              title: 'IMAGENES',
-              image: AssetImage('assets/imagenes.png'),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Imagenes(),
+            Expanded(
+              flex: 2,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: FolderButton(
+                      title: 'IMAGENES',
+                      image: AssetImage('assets/imagenes.png'),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Imagenes(),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                );
-              },
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: FolderButton(
+                      title: 'VIDEOS',
+                      image: AssetImage('assets/videos.png'),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Videos(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
             SizedBox(height: 16),
-            FolderButton(
-              title: 'VIDEOS',
-              image: AssetImage('assets/videos.png'),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Videos(),
+            Expanded(
+              flex: 1,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: FolderButton(
+                      title: 'MUSIC',
+                      image: AssetImage('assets/music.png'),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Musica(),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                );
-              },
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: FolderButton(
+                      title: 'FRASES',
+                      image: AssetImage('assets/frases.png'),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Frases(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -52,56 +100,48 @@ class FolderButton extends StatelessWidget {
   final String title;
   final ImageProvider<Object> image;
   final VoidCallback onPressed;
-  final double buttonWidth; // Nuevo parámetro para el ancho del botón
-  final double buttonHeight; // Nuevo parámetro para el alto del botón
 
   const FolderButton({
     required this.title,
     required this.image,
     required this.onPressed,
-    this.buttonWidth = 330, // Valor predeterminado del ancho del botón
-    this.buttonHeight = 300, // Valor predeterminado del alto del botón
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: buttonWidth,
-      height: buttonHeight,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      child: Ink(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          image: DecorationImage(
+            image: image,
+            fit: BoxFit.cover,
           ),
         ),
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            image: DecorationImage(
-              image: image,
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: InkWell(
-            onTap: onPressed,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 8),
-                color: Colors.black54,
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Arial',
-                    color: Colors.white,
-                  ),
-                  textAlign: TextAlign.center,
+        child: InkWell(
+          onTap: onPressed,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 8),
+              color: Colors.black54,
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Arial',
+                  color: Colors.white,
                 ),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -110,6 +150,7 @@ class FolderButton extends StatelessWidget {
     );
   }
 }
+
 
 
 
