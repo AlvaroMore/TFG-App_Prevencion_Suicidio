@@ -9,30 +9,33 @@ import 'package:firebase_database/firebase_database.dart';
 
 
 class Videos extends StatefulWidget {
+  const Videos({super.key});
+
   @override
-  _VideoFolderPageState createState() => _VideoFolderPageState();
+  // ignore: library_private_types_in_public_api
+  VideosState createState() => VideosState();
 }
 
-class _VideoFolderPageState extends State<Videos> {
+class VideosState extends State<Videos> {
   List<String> videoUrls = [];
-  List<String> videoTitles = [];
+  List<String> videoTitulos = [];
   final baseDatos = FirebaseDatabase.instance;
 
   @override
   void initState() {
     super.initState();
-    loadVideosFromCloudStorage();
-    loadVideoTitlesFromDatabase();
+    cargarVideos();
+    cargarTitulos();
   }
 
-  Future<void> loadVideosFromCloudStorage() async {
+  Future<void> cargarVideos() async {
     final user = FirebaseAuth.instance.currentUser;
     final storage = firebase_storage.FirebaseStorage.instance;
-    final firebase_storage.ListResult result =
+    final firebase_storage.ListResult resultado =
         await storage.ref().child('videos/${user?.uid}').listAll();
 
     final urls = await Future.wait(
-      result.items.map((ref) => ref.getDownloadURL()),
+      resultado.items.map((ref) => ref.getDownloadURL()),
     );
 
     setState(() {
@@ -40,26 +43,27 @@ class _VideoFolderPageState extends State<Videos> {
     });
   }
 
-  Future<void> loadVideoTitlesFromDatabase() async {
+  Future<void> cargarTitulos() async {
     final user = FirebaseAuth.instance.currentUser;
+    // ignore: deprecated_member_use
     final videosRef = baseDatos.reference().child('videos/${user?.uid}');
     final dataSnapshot = await videosRef.once();
 
-    final titles = <String>[];
+    final titulos = <String>[];
     if (dataSnapshot.snapshot.value != null) {
       final videosData = dataSnapshot.snapshot.value as Map<dynamic, dynamic>;
       videosData.forEach((key, value) {
-        final videoTitle = value['title'] as String;
-        titles.add(videoTitle);
+        final videoTitulo = value['titulo'] as String;
+        titulos.add(videoTitulo);
       });
     }
 
     setState(() {
-      videoTitles = titles;
+      videoTitulos = titulos;
     });
   }
 
-  Future<void> uploadVideoToCloudStorage() async {
+  Future<void> subirVideo() async {
     final user = FirebaseAuth.instance.currentUser;
     final imagePicker = ImagePicker();
     final pickedVideo = await imagePicker.pickVideo(
@@ -68,34 +72,35 @@ class _VideoFolderPageState extends State<Videos> {
 
     if (pickedVideo != null) {
       final storage = firebase_storage.FirebaseStorage.instance;
-      final videoName = DateTime.now().microsecondsSinceEpoch.toString();
-      final ref = storage.ref().child('videos/${user?.uid}/$videoName');
-      final uploadTask = ref.putFile(
+      final nombreVideo = DateTime.now().microsecondsSinceEpoch.toString();
+      final ref = storage.ref().child('videos/${user?.uid}/$nombreVideo');
+      final i = ref.putFile(
         File(pickedVideo.path),
         firebase_storage.SettableMetadata(contentType: 'video/*'),
       );
 
       try {
-        final titleController = TextEditingController();
+        final tituloController = TextEditingController();
+        // ignore: use_build_context_synchronously
         await showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Enter Video Title'),
+              title: const Text('Escribe el titulo del video'),
               content: TextField(
-                controller: titleController,
+                controller: tituloController,
               ),
               actions: <Widget>[
                 TextButton(
-                  child: Text('Cancel'),
+                  child: const Text('Cancelar'),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
                 TextButton(
-                  child: Text('Save'),
+                  child: const Text('Guardar'),
                   onPressed: () {
-                    Navigator.of(context).pop(titleController.text);
+                    Navigator.of(context).pop(tituloController.text);
                   },
                 ),
               ],
@@ -103,48 +108,96 @@ class _VideoFolderPageState extends State<Videos> {
           },
         );
 
-        if (titleController.text.isNotEmpty) {
-          await uploadTask.whenComplete(() async {
+        if (tituloController.text.isNotEmpty) {
+          await i.whenComplete(() async {
             final downloadUrl = await ref.getDownloadURL();
+            // ignore: deprecated_member_use
             final videoId = baseDatos.reference().child('videos/${user?.uid}').push().key;
             final videoData = {
               'url': downloadUrl,
-              'title': titleController.text,
+              'title': tituloController.text,
             };
+            // ignore: deprecated_member_use
             await baseDatos.reference().child('videos/${user?.uid}/$videoId').set(videoData);
 
             setState(() {
               videoUrls.add(downloadUrl);
-              videoTitles.add(titleController.text);
+              videoTitulos.add(tituloController.text);
             });
           });
         }
-      } catch (error) {
-        print('Error uploading video: $error');
-      }
+      // ignore: empty_catches
+      } catch (error) {}
     }
   }
 
 
-  void viewVideo(BuildContext context, String videoUrl) {
+  void verVideo(BuildContext context, String videoUrl) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => VideoPlayerPage(videoUrl: videoUrl),
+        builder: (context) => VideoPlayer(videoUrl: videoUrl),
       ),
     );
+  }
+
+  void mensajeEliminacion(BuildContext context, String videoUrl, String videoTitulo) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Eliminar video'),
+          content: Text('¿Estás seguro de que quieres eliminar el video "$videoTitulo"?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await borrarVideo(videoUrl, videoTitulo);
+                // ignore: use_build_context_synchronously
+                Navigator.of(context).pop();
+                // ignore: use_build_context_synchronously
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Video eliminado')),
+                );
+              },
+              child: const Text('Eliminar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> borrarVideo(String videoUrl, String videoTitulo) async {
+    final storage = firebase_storage.FirebaseStorage.instance;
+    final ref = storage.refFromURL(videoUrl);
+
+    await ref.delete();
+
+    final index = videoUrls.indexOf(videoUrl);
+    if (index != -1) {
+      setState(() {
+        videoUrls.removeAt(index);
+        videoTitulos.removeAt(index);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Videos'),
+        title: const Text('Videos'),
       ),
       body: Padding(
-        padding: EdgeInsets.only(top: 16),
+        padding: const EdgeInsets.only(top: 16),
         child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
@@ -152,15 +205,16 @@ class _VideoFolderPageState extends State<Videos> {
           itemCount: videoUrls.length,
           itemBuilder: (context, index) {
             final videoUrl = videoUrls[index];
-            final videoTitle = videoTitles.length > index ? videoTitles[index] : '';
+            final videoTitulo = videoTitulos.length > index ? videoTitulos[index] : '';
             return GestureDetector(
-              onTap: () => viewVideo(context, videoUrl),
+              onTap: () => verVideo(context, videoUrl),
+              onLongPress: () => mensajeEliminacion(context, videoUrl, videoTitulo),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.video_library, size: 48),
-                  SizedBox(height: 8),
-                  Text(videoTitle),
+                  const Icon(Icons.video_library, size: 48),
+                  const SizedBox(height: 8),
+                  Text(videoTitulo),
                 ],
               ),
             );
@@ -168,30 +222,30 @@ class _VideoFolderPageState extends State<Videos> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: uploadVideoToCloudStorage,
-        child: Icon(Icons.add),
+        onPressed: subirVideo,
+        child: const Icon(Icons.add),
       ),
     );
   }
 }
 
-class VideoPlayerPage extends StatefulWidget {
+class VideoPlayer extends StatefulWidget {
   final String videoUrl;
 
-  const VideoPlayerPage({required this.videoUrl});
+  const VideoPlayer({super.key, required this.videoUrl});
 
   @override
-  _VideoPlayerPageState createState() => _VideoPlayerPageState();
+  VideoPlayerState createState() => VideoPlayerState();
 }
 
-class _VideoPlayerPageState extends State<VideoPlayerPage> {
-  late VideoPlayerController _controller;
-  bool _showControls = true;
+class VideoPlayerState extends State<VideoPlayer> {
+  late VideoPlayerController controller;
+  bool controles = true;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(widget.videoUrl)
+    controller = VideoPlayerController.network(widget.videoUrl)
       ..initialize().then((_) {
         setState(() {});
       });
@@ -200,40 +254,40 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   @override
   void dispose() {
     super.dispose();
-    _controller.dispose();
+    controller.dispose();
   }
 
-  void toggleControlsVisibility() {
+  void mostrarControles() {
     setState(() {
-      _showControls = !_showControls;
+      controles = !controles;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final chewieController = ChewieController(
-      videoPlayerController: _controller,
+      videoPlayerController: controller,
       autoPlay: true,
       looping: true,
-      showControls: _showControls,
+      showControls: controles,
     );
 
     return Scaffold(
       body: GestureDetector(
-        onTap: toggleControlsVisibility,
+        onTap: mostrarControles,
         child: Stack(
           alignment: Alignment.bottomCenter,
           children: [
             AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
+              aspectRatio: controller.value.aspectRatio,
               child: Chewie(
                 controller: chewieController,
               ),
             ),
             VideoProgressIndicator(
-              _controller,
+              controller,
               allowScrubbing: true,
-              padding: EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(8.0),
             ),
           ],
         ),

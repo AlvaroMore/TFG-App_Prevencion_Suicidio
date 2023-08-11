@@ -4,57 +4,103 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class Musica extends StatefulWidget {
+  const Musica({super.key});
+
   @override
   MusicaState createState() => MusicaState();
 }
 
 class MusicaState extends State<Musica> {
-  late AudioPlayer _audioPlayer;
-  String _filePath = '';
-  bool _isPlaying = false;
+  late AudioPlayer audioPlayer;
+  String filePath = '';
+  bool isPlaying = false;
 
   @override
   void initState() {
     super.initState();
-    _audioPlayer = AudioPlayer();
+    audioPlayer = AudioPlayer();
   }
 
-  Future<void> _uploadFile(String filePath) async {
+  Future<void> subirMusica() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.audio,
     );
 
     if (result != null) {
-      final selectedFile = result.files.single;
+      final archivo = result.files.single;
 
-      // Subir archivo a Firebase Storage
-      Reference storageReference = FirebaseStorage.instance.ref().child(selectedFile.name);
-      UploadTask uploadTask = storageReference.putData(selectedFile.bytes!);
+      Reference baseDatos = FirebaseStorage.instance.ref().child(archivo.name);
+      UploadTask uploadTask = baseDatos.putData(archivo.bytes!);
       await uploadTask.whenComplete(() => null);
 
       setState(() {
-        _filePath = selectedFile.name;
-        _isPlaying = false;
+        filePath = archivo.name;
+        isPlaying = false;
       });
     }
   }
 
-  void _playPauseMusic() {
-    if (_filePath.isNotEmpty) {
-      if (_isPlaying) {
-        _audioPlayer.pause();
+  Future<void> borrarMusica(String filePath) async {
+    Reference baseDatos= FirebaseStorage.instance.ref().child(filePath);
+    await baseDatos.delete();
+
+    setState(() {
+      if (isPlaying) {
+        audioPlayer.stop();
+        isPlaying = false;
+      }
+      filePath = '';
+    });
+  }
+
+  void reproducirMusica() {
+    if (filePath.isNotEmpty) {
+      if (isPlaying) {
+        audioPlayer.pause();
       } else {
-        _audioPlayer.play(_filePath as Source);
+        audioPlayer.play(filePath as Source);
       }
       setState(() {
-        _isPlaying = !_isPlaying;
+        isPlaying = !isPlaying;
       });
+    }
+  }
+
+  Future<void> mensajeEliminacion(BuildContext context) async {
+    if (filePath.isNotEmpty) {
+      final result = await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Eliminar canción'),
+            content: const Text('¿Estás seguro de que quieres eliminar esta canción?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: const Text('Eliminar'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (result == true) {
+        borrarMusica(filePath);
+      }
     }
   }
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    audioPlayer.dispose();
     super.dispose();
   }
 
@@ -62,32 +108,39 @@ class MusicaState extends State<Musica> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Music Player'),
+        title: const Text('Music Player'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (_filePath.isNotEmpty)
+            if (filePath.isNotEmpty)
               Text(
-                'Selected Music: $_filePath',
-                style: TextStyle(fontSize: 18),
+                'Selected Music: $filePath',
+                style: const TextStyle(fontSize: 18),
               ),
-            SizedBox(height: 16),
-            IconButton(
-              onPressed: _playPauseMusic,
-              icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
-              iconSize: 48,
+            const SizedBox(height: 16),
+            GestureDetector(
+              onLongPress: () {
+                mensajeEliminacion(context);
+              },
+              child: IconButton(
+                onPressed: reproducirMusica,
+                icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+                iconSize: 48,
+              ),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _uploadFile(_filePath),
-        child: Icon(Icons.add),
+        onPressed: subirMusica,
+        child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
   }
 }
+
+
 

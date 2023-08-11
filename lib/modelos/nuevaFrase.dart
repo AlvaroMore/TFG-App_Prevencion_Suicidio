@@ -1,36 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
+import 'package:firebase_auth/firebase_auth.dart';
 
+// ignore: camel_case_types
 class nuevaFrase extends StatefulWidget {
+  const nuevaFrase({super.key});
+
   @override
   nuevaFraseState createState() => nuevaFraseState();
 }
 
+// ignore: camel_case_types
 class nuevaFraseState extends State<nuevaFrase> {
-  final _databaseReference = FirebaseDatabase.instance.reference();
-  final _auth = FirebaseAuth.instance; // Firebase Auth instance
-  TextEditingController _fraseController = TextEditingController();
+  // ignore: deprecated_member_use
+  final baseDatos = FirebaseDatabase.instance.reference();
+  final auth = FirebaseAuth.instance;
+  final TextEditingController fraseController = TextEditingController();
 
-  void _guardarFrase() async {
-    User? user = _auth.currentUser; // Get the currently authenticated user
+  void guardarFrase() async {
+    User? user = auth.currentUser;
     if (user != null) {
-      String nuevaFrase = _fraseController.text.trim();
+      String nuevaFrase = fraseController.text.trim();
       if (nuevaFrase.isNotEmpty) {
-        // Store the phrase along with the user's ID
-        _databaseReference.child('frases').push().set({
-          'userId': user.uid, // Store the user's ID
+        baseDatos.child('frases').push().set({
+          'userId': user.uid,
           'frase': nuevaFrase,
         });
 
-        Navigator.pop(context); // Return to the previous screen
+        Navigator.pop(context);
       }
     }
   }
 
   @override
   void dispose() {
-    _fraseController.dispose();
+    fraseController.dispose();
     super.dispose();
   }
 
@@ -38,23 +42,23 @@ class nuevaFraseState extends State<nuevaFrase> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Nueva Frase'),
+        title: const Text('Nueva Frase'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
-              controller: _fraseController,
-              decoration: InputDecoration(
+              controller: fraseController,
+              decoration: const InputDecoration(
                 labelText: 'Escribe una frase',
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _guardarFrase,
-              child: Text('Guardar'),
+              onPressed: guardarFrase,
+              child: const Text('Guardar'),
             ),
           ],
         ),

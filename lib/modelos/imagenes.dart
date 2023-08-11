@@ -5,20 +5,22 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class Imagenes extends StatefulWidget {
+  const Imagenes({super.key});
+
   @override
-  _ImageFolderPageState createState() => _ImageFolderPageState();
+  ImagenesState createState() => ImagenesState();
 }
 
-class _ImageFolderPageState extends State<Imagenes> {
-  List<String> imageUrls = [];
+class ImagenesState extends State<Imagenes> {
+  final List<String> imagenes = [];
 
   @override
   void initState() {
     super.initState();
-    loadImagesFromCloudStorage();
+    cargarImagenes();
   }
 
-  Future<void> loadImagesFromCloudStorage() async {
+  Future<void> cargarImagenes() async {
     final user = FirebaseAuth.instance.currentUser;
     final storage = firebase_storage.FirebaseStorage.instance;
     final firebase_storage.ListResult result =
@@ -29,11 +31,54 @@ class _ImageFolderPageState extends State<Imagenes> {
     );
 
     setState(() {
-      imageUrls = urls;
+      imagenes.addAll(urls);
     });
   }
 
-  Future<void> uploadImageToCloudStorage() async {
+  Future<void> borrarImagen(String imagen) async {
+    final storage = firebase_storage.FirebaseStorage.instance;
+    final ref = storage.refFromURL(imagen);
+
+    await ref.delete();
+
+    setState(() {
+      imagenes.remove(imagen);
+    });
+  }
+
+  void mensajeEliminacion(BuildContext context, String imagen) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Eliminar imagen'),
+          content: const Text('¿Estás seguro de que quieres eliminar esta imagen?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await borrarImagen(imagen);
+                // ignore: use_build_context_synchronously
+                Navigator.of(context).pop();
+                // ignore: use_build_context_synchronously
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Imagen eliminada')),
+                );
+              },
+              child: const Text('Eliminar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> subirImagen() async {
     final user = FirebaseAuth.instance.currentUser;
     final imagePicker = ImagePicker();
     final pickedImage = await imagePicker.pickImage(
@@ -43,26 +88,26 @@ class _ImageFolderPageState extends State<Imagenes> {
     if (pickedImage != null) {
       final storage = firebase_storage.FirebaseStorage.instance;
       final ref = storage.ref().child('images/${user?.uid}/${pickedImage.name}');
-      final uploadTask = ref.putFile(
+      final i = ref.putFile(
         File(pickedImage.path),
         firebase_storage.SettableMetadata(contentType: 'image/*'),
       );
 
-      await uploadTask.whenComplete(() {});
+      await i.whenComplete(() {});
 
-      final imageUrl = await ref.getDownloadURL();
+      final imagen = await ref.getDownloadURL();
 
       setState(() {
-        imageUrls.add(imageUrl);
+        imagenes.add(imagen);
       });
     }
   }
 
-  void viewImage(BuildContext context, String imageUrl) {
+  void viewImage(BuildContext context, String imagen) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ImageFullscreenPage(imageUrl: imageUrl),
+        builder: (context) => ImagenPage(imagen: imagen),
       ),
     );
   }
@@ -71,23 +116,24 @@ class _ImageFolderPageState extends State<Imagenes> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Imagenes'),
+        title: const Text('Imagenes'),
       ),
       body: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 10,
           mainAxisSpacing: 10,
         ),
-        itemCount: imageUrls.length,
+        itemCount: imagenes.length,
         itemBuilder: (context, index) {
-          final imageUrl = imageUrls[index];
+          final imagen = imagenes[index];
           return GestureDetector(
-            onTap: () => viewImage(context, imageUrl),
+            onTap: () => viewImage(context, imagen),
+            onLongPress: () => mensajeEliminacion(context, imagen),
             child: Hero(
-              tag: imageUrl,
+              tag: imagen,
               child: Image.network(
-                imageUrl,
+                imagen,
                 fit: BoxFit.cover,
               ),
             ),
@@ -95,17 +141,17 @@ class _ImageFolderPageState extends State<Imagenes> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: uploadImageToCloudStorage,
-        child: Icon(Icons.add),
+        onPressed: subirImagen,
+        child: const Icon(Icons.add),
       ),
     );
   }
 }
 
-class ImageFullscreenPage extends StatelessWidget {
-  final String imageUrl;
+class ImagenPage extends StatelessWidget {
+  final String imagen;
 
-  const ImageFullscreenPage({required this.imageUrl});
+  const ImagenPage({super.key, required this.imagen});
 
   @override
   Widget build(BuildContext context) {
@@ -114,9 +160,9 @@ class ImageFullscreenPage extends StatelessWidget {
         onTap: () => Navigator.pop(context),
         child: Center(
           child: Hero(
-            tag: imageUrl,
+            tag: imagen,
             child: Image.network(
-              imageUrl,
+              imagen,
               fit: BoxFit.contain,
             ),
           ),
