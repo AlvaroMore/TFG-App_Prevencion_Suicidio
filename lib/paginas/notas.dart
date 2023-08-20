@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:appbu_s/modelos/nuevaNota.dart';
 
 class Notas extends StatefulWidget {
+  const Notas({super.key});
+
   @override
   NotasState createState() => NotasState();
 }
@@ -19,91 +21,143 @@ class NotasState extends State<Notas> {
       theme: ThemeData(
         primaryColor: Colors.greenAccent[700],
       ),
-      home: Inicio(),
+      home: const blocNotas(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class Inicio extends StatefulWidget {
+// ignore: camel_case_types
+class blocNotas extends StatefulWidget {
+  const blocNotas({super.key});
+
   @override
-  _InicioState createState() => _InicioState();
+  blocNotasState createState() => blocNotasState();
 }
 
-class _InicioState extends State<Inicio> {
-  final baseDatos = FirebaseDatabase.instance; //Acceso a la base de datos
+// ignore: camel_case_types
+class blocNotasState extends State<blocNotas> {
+  final baseDatos = FirebaseDatabase.instance;
+  // ignore: prefer_typing_uninitialized_variables
   var dato;
+  // ignore: prefer_typing_uninitialized_variables
   var valor;
-  var key_;
-  var userRole;
+  // ignore: prefer_typing_uninitialized_variables
+  var key;
+  // ignore: prefer_typing_uninitialized_variables
+  var userRol;
+  String usuarioSeleccionado = '';
+  String usuarioSeleccionadoId = '';
+  bool mostrarMenu = false;
+  List<String> listaUsuarios = [];
 
-  Future<String> getUserRole(String userId) async { //Obtener el rol del usuario
+  Future<String> conseguirRolUsuario(String userId) async {
+    // ignore: deprecated_member_use
     final userRoleRef = baseDatos.reference().child('users/$userId/rol');
     DatabaseEvent snapshot = await userRoleRef.once();
     var snapshotValue = snapshot.snapshot.value;
     return (snapshotValue as String?) ?? '';
   }
 
+  List<Widget> listaNotas(List<Widget> notasFiltradas) {
+    return notasFiltradas;
+  }
+
+  Future<String> conseguirUserId(String usuario) async {
+    // ignore: deprecated_member_use
+    final usersRef = baseDatos.reference().child('users');
+    DatabaseEvent snapshot = await usersRef.once();
+    Map<dynamic, dynamic> usersMap = snapshot.snapshot.value as Map<dynamic, dynamic>;
+    String userId = '';
+    for (var entry in usersMap.entries) {
+      Map<dynamic, dynamic> userData = entry.value as Map<dynamic, dynamic>;
+      String usuarioActual = userData['usuario'] as String;
+      if (usuarioActual == usuario) {
+        userId = entry.key as String;
+      }
+    }
+    return userId;
+  }
 
   @override
   void initState() {
     super.initState();
+    // ignore: deprecated_member_use
+    DatabaseReference usersRef = baseDatos.reference().child('users');
+      usersRef.once().then((DatabaseEvent snapshot) {
+        Map<dynamic, dynamic> usersMap = snapshot.snapshot.value as Map<dynamic, dynamic>;
+        listaUsuarios = usersMap.entries.map((e) => e.value['usuario']).toSet().toList().cast<String>();
+        setState(() {
+          usuarioSeleccionado = listaUsuarios.isNotEmpty ? listaUsuarios[0] : '';
+        });
+    });
     fetchUserRole();
   }
 
-  void fetchUserRole() async { //Establecer el rol del usuario actual
+  Future<void> fetchUserRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      String role = await getUserRole(user.uid);
+      String rol = await conseguirRolUsuario(user.uid);
       setState(() {
-        userRole = role;
+        userRol = rol;
+        mostrarMenu = (userRol == 'administrador');
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final datosRef = baseDatos.reference().child('notas');//Referencia a la base de datos
+    // ignore: deprecated_member_use
+    final datosRef = baseDatos.reference().child('notas');
 
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notas'),
+        title: const Text('Notas'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: (){
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => HomePage())
-              );
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomePage()));
           },
         ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
         onPressed: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => NuevaNota(),
-            ),
-          );
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => NuevaNota()));
         },
-        child: Icon(
-          Icons.add,
-        ),
+        child: const Icon(Icons.add),
       ),
-      
-      body: FirebaseAnimatedList(
-        query: datosRef,
-        shrinkWrap: true,
-        itemBuilder: (context, snapshot, animation, index) {
-          final noteData = snapshot.value as Map<dynamic, dynamic>;//Se establece los datos de la nota
-          final noteUserId = noteData['UserId'] as String;//Obtengo el userId de la nota
+      body: Column(
+        children: [
+          mostrarMenu? DropdownButton<String>(
+                  value: usuarioSeleccionado,
+                  onChanged: (String? nuevoValor) {
+                    setState(() {
+                      usuarioSeleccionado = nuevoValor!;
+                      usuarioSeleccionadoId = conseguirUserId(nuevoValor) as String;
+                    });
+                  },
+                  items: listaUsuarios.map((String usuario) {
+                    return DropdownMenuItem<String>(
+                      value: usuario,
+                      child: Text(usuario),
+                    );
+                  }).toList(),
+                  hint: const Text('Seleccione un usuario'),
+                )
+              : const SizedBox(),
+          Expanded(
+            child: FirebaseAnimatedList(
+              query: datosRef,
+              shrinkWrap: true,
+              itemBuilder: (context, snapshot, animation, index) {
+                final datosNota = snapshot.value as Map<dynamic, dynamic>;
+                final idUsuarioNota = datosNota['UserId'] as String;
 
-          if (userRole == "administrador" || noteUserId == user?.uid) {//Si el usuario el administrador o tiene el mismo userId
-            var valorString = noteData.toString();
+                if (userRol == "administrador" || (idUsuarioNota == user?.uid && idUsuarioNota == usuarioSeleccionadoId)) {
+            var valorString = datosNota.toString();
             valor = valorString.replaceAll(
                 RegExp("{|}|Contenido: |Titulo: |FechaCreacion: |UserId: "), "");
             valor = valor.trim();
@@ -112,16 +166,15 @@ class _InicioState extends State<Inicio> {
             if (dato.length >= 2) {
               TextEditingController tituloEditar = TextEditingController(text: dato[2]);
               TextEditingController contenidoEditar = TextEditingController(text: dato[0]);
-
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    key_ = snapshot.key;
+                    key = snapshot.key;
                   });
                   showDialog(
                     context: context,
                     builder: (ctx) => AlertDialog(
-                      title: Text(
+                      title: const Text(
                         "Editar Nota",
                         style: TextStyle(
                           fontSize: 20,
@@ -135,19 +188,19 @@ class _InicioState extends State<Inicio> {
                             child: TextField(
                               controller: tituloEditar,
                               textAlign: TextAlign.center,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 hintText: 'Titulo',
                               ),
                               maxLines: null,
                             ),
                           ),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           Container(
                             decoration: BoxDecoration(border: Border.all()),
                             child: TextField(
                               controller: contenidoEditar,
                               textAlign: TextAlign.center,
-                              decoration: InputDecoration(
+                              decoration: const InputDecoration(
                                 hintText: 'Contenido',
                               ),
                               maxLines: null,
@@ -161,7 +214,7 @@ class _InicioState extends State<Inicio> {
                             Navigator.of(ctx).pop();
                           },
                           color: Colors.blue,
-                          child: Text(
+                          child: const Text(
                             "Cancelar",
                             style: TextStyle(
                               color: Colors.white,
@@ -175,10 +228,11 @@ class _InicioState extends State<Inicio> {
                               contenidoEditar.text,
                               user!.uid,
                             );
+                            // ignore: use_build_context_synchronously
                             Navigator.of(ctx).pop();
                           },
                           color: Colors.blue,
-                          child: Text(
+                          child: const Text(
                             "Aceptar",
                             style: TextStyle(
                               color: Colors.white,
@@ -194,14 +248,14 @@ class _InicioState extends State<Inicio> {
                     padding: const EdgeInsets.all(8.0),
                     child: ListTile(
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(
+                        side: const BorderSide(
                           color: Colors.white,
                         ),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      tileColor: Color.fromARGB(171, 152, 209, 255),
+                      tileColor: const Color.fromARGB(171, 152, 209, 255),
                       trailing: IconButton(
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.delete,
                           color: Color.fromARGB(255, 255, 85, 72),
                         ),
@@ -211,14 +265,14 @@ class _InicioState extends State<Inicio> {
                       ),
                       title: Text(
                         dato[2],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       subtitle: Text(
                         dato[0],
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -228,19 +282,24 @@ class _InicioState extends State<Inicio> {
                 ),
               );
             } else {
-              return SizedBox();
+              return const SizedBox();
             }
           } else {
-            return SizedBox();
+            return const SizedBox();
           }
         },
+            ),
       ),
+        ],
+          ),
+        
     );
   }
 
   actualizar(String nuevoTitulo, String nuevoContenido, String userId) async {
     DatabaseReference datosGRef =
-        FirebaseDatabase.instance.reference().child("notas/$key_");
+        // ignore: deprecated_member_use
+        FirebaseDatabase.instance.reference().child("notas/$key");
     await datosGRef.update({
       "Titulo": nuevoTitulo,
       "Contenido": nuevoContenido,
