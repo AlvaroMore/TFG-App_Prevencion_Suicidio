@@ -11,7 +11,7 @@ Este TFG se basa en el desarrollo de una aplicación móvil mediante Flutter y l
 
 Los archivos del proyecto están en la carpeta lib de este repositorio.
 
-Descarga del APK de la aplicación (Android): https://drive.google.com/file/d/1mvfOUr50QA6R_mzyFLvZ6VuHkzoU2nVQ/view?usp=drive_link
+Descarga del APK (versión 5.0) de la aplicación (Android): https://drive.google.com/file/d/1sJzl_0NHNZ-cPROQR3CXGFsyoH2Jmq48/view?usp=sharing
 
 **Autor:** Álvaro Moreno Palmero \
 **Tutores:** Pedro Latorre Carmona y Ana Serrano Mamolar \
