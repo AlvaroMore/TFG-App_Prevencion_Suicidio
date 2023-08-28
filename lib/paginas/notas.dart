@@ -126,9 +126,31 @@ class blocNotasState extends State<blocNotas> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomePage()));
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Menu()));
           },
         ),
+        actions: [
+          if (mostrarMenu)
+            DropdownButton<String>(
+              value: usuarioSeleccionado,
+              onChanged: (String? nuevoValor) {
+                conseguirUserId(nuevoValor!).then((userId) {
+                  setState(() {
+                    usuarioSeleccionado = nuevoValor;
+                    usuarioSeleccionadoId = userId;
+                  });
+                });
+              },
+              items: listaUsuarios.map((String usuario) {
+                return DropdownMenuItem<String>(
+                  value: usuario,
+                  child: Text(usuario),
+                );
+              }).toList(),
+              hint: const Text('Seleccione un usuario'),
+              dropdownColor: Colors.white,
+            ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blue,
@@ -139,25 +161,7 @@ class blocNotasState extends State<blocNotas> {
       ),
       body: Column(
         children: [
-          mostrarMenu? DropdownButton<String>(
-                  value: usuarioSeleccionado,
-                  onChanged: (String? nuevoValor) {
-                    conseguirUserId(nuevoValor!).then((userId) {
-                      setState(() {
-                        usuarioSeleccionado = nuevoValor;
-                        usuarioSeleccionadoId = userId;
-                      });
-                    });
-                  },
-                  items: listaUsuarios.map((String usuario) {
-                    return DropdownMenuItem<String>(
-                      value: usuario,
-                      child: Text(usuario),
-                    );
-                  }).toList(),
-                  hint: const Text('Seleccione un usuario'),
-                )
-              : const SizedBox(),
+          const SizedBox(),
           Expanded(
             child: FirebaseAnimatedList(
               query: datosRef,
@@ -428,7 +432,6 @@ class blocNotasState extends State<blocNotas> {
       ),
         ],
           ),
-        
     );
   }
 }

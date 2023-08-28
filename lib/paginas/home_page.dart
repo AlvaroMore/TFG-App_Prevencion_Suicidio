@@ -1,5 +1,4 @@
 import 'package:appbu_s/paginas/enlace.dart';
-import 'package:appbu_s/paginas/ajustes.dart';
 import 'package:appbu_s/paginas/login_page.dart';
 import 'package:appbu_s/paginas/media.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,30 +12,31 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 
-class HomePage extends StatefulWidget{
-  HomePage({Key? key}) : super(key: key);
+class Menu extends StatefulWidget{
+  const Menu({Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  // ignore: library_private_types_in_public_api
+  MenuState createState() => MenuState();
 }
 
-class _HomePageState extends State<HomePage> {
-  final User? user = Auth().currentUser;
+class MenuState extends State<Menu> {
+  final User? usuario = Auth().currentUser;
 
-  Future<void> storeDeviceToken() async {
+  Future<void> tokenDispositivo() async {
     final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
 
     final String deviceToken = (await firebaseMessaging.getToken())!;
 
     final DatabaseReference deviceTokenRef =
-        FirebaseDatabase.instance.reference().child('users/${user?.uid}/token');
+        FirebaseDatabase.instance.ref().child('users/${usuario?.uid}/token');
     deviceTokenRef.set(deviceToken);
   }
 
   @override
   void initState() {
     super.initState();
-    storeDeviceToken();
+    tokenDispositivo();
   }
 
   Future<void> signOut() async {
@@ -48,18 +48,13 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget _title(){
+  Widget titulo(){
     return const Text('Inicio');
   }
-  Widget _userUid(){
-    return Text(user?.email ?? 'Usuario');
+  Widget userId(){
+    return Text(usuario?.email ?? 'Usuario');
   }
-  Widget _signOutButton(){
-    return ElevatedButton(
-      onPressed: signOut, 
-      child: const Text('Salir'),
-      );
-  }
+
   Widget _calendario(BuildContext context) {
     return ElevatedButton(
       child: const Text('Calendario'),
@@ -88,23 +83,12 @@ class _HomePageState extends State<HomePage> {
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => enlace()),
+          MaterialPageRoute(builder: (context) => Enlace()),
         );
       }
     );
   }
-  Widget _ajustes(BuildContext context) {
-    return ElevatedButton(
-      child: const Text('Ajustes'),
-      onPressed: () {
-        AppSettings.openDeviceSettings();
-        //Navigator.push(
-          //context,
-          //MaterialPageRoute(builder: (context) => ajustes()),
-        //);
-      }
-    );
-  }
+
   Widget _notas(BuildContext context) {
     return ElevatedButton(
       child: const Text('Notas'),
@@ -121,13 +105,13 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
-        title: _title(),
+        title: titulo(),
         automaticallyImplyLeading: false,
       ),
       
       body: Container(
         padding: const EdgeInsets.only(
-          top: 75,
+          top: 50,
           bottom: 10,
           left: 10,
           right: 10
@@ -213,7 +197,7 @@ class _HomePageState extends State<HomePage> {
                         onPressed: (){
                           Navigator.push(
                             context, 
-                            MaterialPageRoute(builder: (context) => enlace()),
+                            MaterialPageRoute(builder: (context) => Enlace()),
                             );
                         },
                         child: Icon(Icons.travel_explore, size: 60, color: Colors.black),

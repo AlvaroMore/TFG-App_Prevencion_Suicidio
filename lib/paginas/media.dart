@@ -11,100 +11,109 @@ class media extends StatelessWidget {
       appBar: AppBar(
         title: Text('Multimedia'),
       ),
-      body: Center(
-        child: Column(
-          children: [
-            Expanded(
-              flex: 2,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: FolderButton(
-                      title: 'IMAGENES',
-                      image: AssetImage('assets/imagenes.png'),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Imagenes(),
-                          ),
-                        );
-                      },
-                    ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: FolderButton(
+                    title: 'IMAGENES',
+                    image: AssetImage('recursos/imagenes.png'),
+                    width: 250,
+                    height: 280,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Imagenes(),
+                        ),
+                      );
+                    },
                   ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: FolderButton(
-                      title: 'VIDEOS',
-                      image: AssetImage('assets/videos.png'),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Videos(),
-                          ),
-                        );
-                      },
-                    ),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: FolderButton(
+                    title: 'VIDEOS',
+                    image: AssetImage('recursos/videos.png'),
+                    width: 250,
+                    height: 280,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Videos(),
+                        ),
+                      );
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            SizedBox(height: 16),
-            Expanded(
-              flex: 1,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: FolderButton(
-                      title: 'MUSIC',
-                      image: AssetImage('assets/music.png'),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Musica(),
-                          ),
-                        );
-                      },
-                    ),
+          ),
+          SizedBox(height: 16),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: FolderButton(
+                    title: 'MUSICA',
+                    image: AssetImage('recursos/musica.png'),
+                    width: 250,
+                    height: 280,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Musica(),
+                        ),
+                      );
+                    },
                   ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: FolderButton(
-                      title: 'FRASES',
-                      image: AssetImage('assets/frases.png'),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Frases(),
-                          ),
-                        );
-                      },
-                    ),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: FolderButton(
+                    title: 'FRASES',
+                    image: AssetImage('recursos/frases.png'),
+                    width: 250,
+                    height: 280,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Frases(),
+                        ),
+                      );
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
+
 class FolderButton extends StatelessWidget {
   final String title;
   final ImageProvider<Object> image;
   final VoidCallback onPressed;
+  final double width;
+  final double height;
 
   const FolderButton({
     required this.title,
     required this.image,
     required this.onPressed,
+    this.width = 150, // Default width
+    this.height = 150, // Default height
   });
 
   @override
@@ -118,6 +127,8 @@ class FolderButton extends StatelessWidget {
         ),
       ),
       child: Ink(
+        width: width,
+        height: height,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           image: DecorationImage(
@@ -150,6 +161,7 @@ class FolderButton extends StatelessWidget {
     );
   }
 }
+
 
 
 

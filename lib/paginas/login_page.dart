@@ -8,15 +8,15 @@ class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<LoginPage> createState() => LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class LoginPageState extends State<LoginPage> {
   String? errorMessage = '';
   bool isLogin = true;
 
-  final TextEditingController _controllerEmail = TextEditingController();
-  final TextEditingController _controllerPassword = TextEditingController();
+  final TextEditingController controllerEmail = TextEditingController();
+  final TextEditingController controllerPassword = TextEditingController();
 
   Widget _errorMessage() {
     return Container(
@@ -33,18 +33,18 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> signInWithEmailAndPassword() async {
     String errorMessage = '';
 
-    if (_controllerEmail.text.isEmpty ||
-        _controllerPassword.text.isEmpty) {
+    if (controllerEmail.text.isEmpty ||
+        controllerPassword.text.isEmpty) {
       errorMessage = 'Falta información en algún campo';
     } else {
       try {
         await Auth().signInWithEmailAndPassword(
-          email: _controllerEmail.text,
-          password: _controllerPassword.text,
+          email: controllerEmail.text,
+          password: controllerPassword.text,
         );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()),
+          MaterialPageRoute(builder: (context) => Menu()),
         );
       } on FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found') {
@@ -111,8 +111,8 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            _entryField('Correo', _controllerEmail),
-            _entryField('Contraseña', _controllerPassword),
+            _entryField('Correo', controllerEmail),
+            _entryField('Contraseña', controllerPassword),
             _errorMessage(),
             _submitButton(),
             _loginOrRegisterButton(),

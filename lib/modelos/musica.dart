@@ -108,7 +108,7 @@ class MusicaState extends State<Musica> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Music Player'),
+        title: const Text('Musica'),
       ),
       body: Center(
         child: Column(
@@ -116,7 +116,7 @@ class MusicaState extends State<Musica> {
           children: [
             if (filePath.isNotEmpty)
               Text(
-                'Selected Music: $filePath',
+                'Musica seleccionada: $filePath',
                 style: const TextStyle(fontSize: 18),
               ),
             const SizedBox(height: 16),

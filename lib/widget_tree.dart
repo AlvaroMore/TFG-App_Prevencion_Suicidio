@@ -32,7 +32,7 @@ class _WidgetTreeState extends State<WidgetTree> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const CircularProgressIndicator();
               } else if (snapshot.hasData) {
-                return HomePage();
+                return Menu();
               } else {
                 return const LoginPage();
               }

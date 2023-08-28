@@ -5,13 +5,13 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:appbu_s/modelos/nuevoEnlace.dart';
 import 'package:firebase_database/ui/firebase_animated_list.dart';
 
-class enlace extends StatefulWidget {
+class Enlace extends StatefulWidget {
   @override
-  _EnlaceState createState() => _EnlaceState();
+  EnlaceState createState() => EnlaceState();
 }
 
-class _EnlaceState extends State<enlace> {
-  bool _isAdmin = false;
+class EnlaceState extends State<Enlace> {
+  bool admin = false;
 
   @override
   void initState() {
@@ -22,15 +22,15 @@ class _EnlaceState extends State<enlace> {
   Future<void> fetchUserRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      String role = await getUserRole(user.uid);
+      String role = await conseguirRolUsuario(user.uid);
       setState(() {
-        _isAdmin = role == 'administrador';
+        admin = role == 'administrador';
       });
     }
   }
 
-  Future<String> getUserRole(String userId) async {
-    final userRoleRef = FirebaseDatabase.instance.reference().child('users/$userId/rol');
+  Future<String> conseguirRolUsuario(String userId) async {
+    final userRoleRef = FirebaseDatabase.instance.ref().child('users/$userId/rol');
     DatabaseEvent snapshot = await userRoleRef.once();
     var snapshotValue = snapshot.snapshot.value;
     return (snapshotValue as String?) ?? '';
@@ -40,15 +40,15 @@ class _EnlaceState extends State<enlace> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Links a Internet'),
+        title: const Text('Links a Internet'),
       ),
-      floatingActionButton: _isAdmin
+      floatingActionButton: admin
           ? FloatingActionButton(
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => NuevoEnlace()));
               },
-              child: Icon(Icons.add),
               backgroundColor: Colors.blue,
+              child: const Icon(Icons.add),
             )
           : null,
       body: Container(
@@ -59,7 +59,7 @@ class _EnlaceState extends State<enlace> {
   }
 
   Widget _buildLinksList() {
-    final linksReference = FirebaseDatabase.instance.reference().child('links');
+    final linksReference = FirebaseDatabase.instance.ref().child('links');
     return FirebaseAnimatedList(
       query: linksReference,
       itemBuilder: (context, snapshot, animation, index) {
@@ -72,23 +72,23 @@ class _EnlaceState extends State<enlace> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: ElevatedButton(
                   onPressed: () async {
-                    await launch(url);
+                    await launchUrl(url);
                   },
-                  child: Text(texto),
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-                    textStyle: TextStyle(fontSize: 18),
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                    textStyle: const TextStyle(fontSize: 18),
                   ),
+                  child: Text(texto),
                 ),
               ),
-              if (_isAdmin)
+              if (admin)
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
                   child: IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red),
+                    icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () => borrarLink(linkKey!),
                   ),
                 ),
@@ -100,7 +100,7 @@ class _EnlaceState extends State<enlace> {
   }
 
   void borrarLink(String linkKey) {
-    DatabaseReference databaseReference = FirebaseDatabase.instance.reference().child('links');
+    DatabaseReference databaseReference = FirebaseDatabase.instance.ref().child('links');
     databaseReference.child(linkKey).remove().then((_) {});
   }
 }

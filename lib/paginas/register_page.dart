@@ -62,7 +62,7 @@ class _RegisterPageState extends State<RegisterPage> {
         );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()),
+          MaterialPageRoute(builder: (context) => Menu()),
         );
       } on FirebaseAuthException catch (e) {
         if (e.code == 'email-already-in-use') {
