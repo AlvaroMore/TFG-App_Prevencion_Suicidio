@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:appbu_s/paginas/calendario.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:appbu_s/modelos/cita.dart';
@@ -14,26 +15,25 @@ class NuevaCita extends StatefulWidget {
   final int? citaIndex;
   final List<Appointment> appointments;
 
-  NuevaCita({this.citaIndex, required this.appointments});
+  const NuevaCita({super.key, this.citaIndex, required this.appointments});
 
   @override
   NuevaCitaState createState() => NuevaCitaState();
 }
 
 class NuevaCitaState extends State<NuevaCita> {
-  final _database = FirebaseDatabase.instance;
   final TextEditingController tituloController = TextEditingController();
   final user = FirebaseAuth.instance.currentUser;
   final baseDatos = FirebaseDatabase.instance;
   // ignore: prefer_typing_uninitialized_variables
   var userRole;
-  bool showUserDropdown = false;
+  bool mostrarMenu = false;
   late DateTime fechaInicio;
   late DateTime fechaFin;
   DateFormat dateFormat = DateFormat('dd-MM-yyyy');
   DateFormat timeFormat = DateFormat('HH:mm');
-  List<String> usersList = [];
-  String selectedUser = '';
+  List<String> listaUsuarios = [];
+  String usuarioSeleccionado = '';
   String? adminToken;
 
   @override
@@ -53,29 +53,23 @@ class NuevaCitaState extends State<NuevaCita> {
       fechaInicio = DateTime.now();
       fechaFin = DateTime.now();
     }
-    DatabaseReference usersRef = _database.reference().child('users');
+    DatabaseReference usersRef = baseDatos.ref().child('users');
     usersRef.once().then((DatabaseEvent snapshot) {
       Map<dynamic, dynamic> usersMap = snapshot.snapshot.value as Map<dynamic, dynamic>;
-      print(usersMap);
-      if (usersMap != null) {
-        usersList = usersMap.entries.map((e) => e.value['usuario']).toSet().toList().cast<String>();
-        setState(() {
-          selectedUser = usersList.isNotEmpty ? usersList[0] : '';
-        });
-      }
+      listaUsuarios = usersMap.entries.map((e) => e.value['usuario']).toSet().toList().cast<String>();
+      setState(() {
+        usuarioSeleccionado = listaUsuarios.isNotEmpty ? listaUsuarios[0] : '';
+      });
     });
     fetchUserRole();
   }
 
   Future<void> fetchAdminToken() async {
-    final usersRef = baseDatos.reference().child('users');
+    final usersRef = baseDatos.ref().child('users');
     final DatabaseEvent dataSnapshot = await usersRef.once();
-    
     final usuarios = dataSnapshot.snapshot.value as Map<dynamic, dynamic>;
-
     String? adminUserId;
     
-    // Buscar el usuario con el rol de administrador
     usuarios.forEach((userId, userData) {
       final rol = userData['rol'] as String?;
       if (rol == 'administrador') {
@@ -85,16 +79,15 @@ class NuevaCitaState extends State<NuevaCita> {
     });
 
     if (adminUserId != null) {
-      final adminTokenRef = baseDatos.reference().child('users/$adminUserId/token');
+      final adminTokenRef = baseDatos.ref().child('users/$adminUserId/token');
       final DatabaseEvent tokenSnapshot = await adminTokenRef.once();
       adminToken = tokenSnapshot.snapshot.value as String?;
     }
-
     setState(() {});
   }
 
-  Future<String> getUserRole(String userId) async {
-    final userRoleRef = baseDatos.reference().child('users/$userId/rol');
+  Future<String> conseguirRolUsuario(String userId) async {
+    final userRoleRef = baseDatos.ref().child('users/$userId/rol');
     DatabaseEvent snapshot = await userRoleRef.once();
     var snapshotValue = snapshot.snapshot.value;
     return (snapshotValue as String?) ?? '';
@@ -103,55 +96,109 @@ class NuevaCitaState extends State<NuevaCita> {
   Future<void> fetchUserRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      String role = await getUserRole(user.uid);
+      String role = await conseguirRolUsuario(user.uid);
       setState(() {
         userRole = role;
-        showUserDropdown = (userRole == 'administrador');
+        mostrarMenu = (userRole == 'administrador');
       });
+    }
+  }
+
+  Future<String> conseguirUserToken(String? selectedUser) async {
+    if (userRole == 'administrador') {
+      // Fetch the selected user's token from the database based on the selectedUser
+      DatabaseReference userRef = baseDatos.ref().child('users');
+      DatabaseEvent snapshot = await userRef.orderByChild('usuario').equalTo(selectedUser).once();
+      Map<dynamic, dynamic> userData = snapshot.snapshot.value as Map<dynamic, dynamic>;
+      if (userData != null && userData.isNotEmpty) {
+        String userId = userData.keys.first.toString();
+        String userToken = userData[userId]['token'];
+        return userToken;
+      }
+    } else {
+      // Return the admin's token
+      return adminToken ?? '';
+    }
+    return '';
+  }
+
+  void mayusculaPrimeraLetra(String input) {
+    if (input.isNotEmpty) {
+      tituloController.text =
+          input[0].toUpperCase() + (input.length > 1 ? input.substring(1).toLowerCase() : '');
+
+      tituloController.selection = TextSelection.fromPosition(
+        TextPosition(offset: tituloController.text.length),
+      );
     }
   }
 
   void guardarCita() {
     String titulo = tituloController.text.trim();
-    Appointment appointment = Appointment(
-      startTime: fechaInicio,
-      endTime: fechaFin,
-      subject: titulo,
-      color: Colors.blue,
-    );
+    if (fechaInicio.isBefore(fechaFin)) {
+      Appointment appointment = Appointment(
+        startTime: fechaInicio,
+        endTime: fechaFin,
+        subject: titulo,
+        color: Colors.blue,
+      );
 
-    var rng = Random();
-    var key_ = rng.nextInt(10000).toString();
+      var rng = Random();
+      var key_ = rng.nextInt(10000).toString();
 
-    if (widget.citaIndex != null) {
-      Appointment citaPulsada = widget.appointments[widget.citaIndex!];
-      DatabaseReference citaOriginal = _database.reference().child('citas/${citaPulsada.id}');
-      citaOriginal.remove();
+      if (widget.citaIndex != null) {
+        Appointment citaPulsada = widget.appointments[widget.citaIndex!];
+        DatabaseReference citaOriginal = baseDatos.ref().child('citas/${citaPulsada.id}');
+        citaOriginal.remove();
 
-      DatabaseReference citaEditada = _database.reference().child('citas/$key_');
-      citaEditada.set({
-        "Titulo": appointment.subject,
-        "FechaInicio": appointment.startTime.toString(),
-        "FechaFin": appointment.endTime.toString(),
-        "UserId": user?.uid ?? '',
-        "NombreUsuario": selectedUser,
-      }).asStream();
-      citaPulsada.subject = appointment.subject;
-      citaPulsada.startTime = appointment.startTime;
-      citaPulsada.endTime = appointment.endTime;
+        DatabaseReference citaEditada = baseDatos.ref().child('citas/$key_');
+        citaEditada.set({
+          "Titulo": appointment.subject,
+          "FechaInicio": appointment.startTime.toString(),
+          "FechaFin": appointment.endTime.toString(),
+          "UserId": user?.uid ?? '',
+          "NombreUsuario": usuarioSeleccionado,
+        }).asStream();
+        citaPulsada.subject = appointment.subject;
+        citaPulsada.startTime = appointment.startTime;
+        citaPulsada.endTime = appointment.endTime;
+      } else {
+        DatabaseReference datosRef = baseDatos.ref().child('citas/$key_');
+        datosRef.set({
+          "Titulo": appointment.subject,
+          "FechaInicio": appointment.startTime.toString(),
+          "FechaFin": appointment.endTime.toString(),
+          "UserId": user?.uid ?? '',
+          "NombreUsuario": usuarioSeleccionado,
+        }).asStream();
+        widget.appointments.add(appointment);
+        if (mounted) {
+          setState(() {});
+        }
+        DataSource dataSource = DataSource(widget.appointments);
+        dataSource.actualizarCita(widget.appointments);
+      }
+      Navigator.pop(context);
+      sendPushNotification();
     } else {
-      DatabaseReference datosRef = _database.reference().child('citas/$key_');
-      datosRef.set({
-        "Titulo": appointment.subject,
-        "FechaInicio": appointment.startTime.toString(),
-        "FechaFin": appointment.endTime.toString(),
-        "UserId": user?.uid ?? '',
-        "NombreUsuario": selectedUser,
-      }).asStream();
-      widget.appointments.add(appointment);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: const Text('La hora de fin debe ser posterior a la hora de inicio'),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     }
-    Navigator.pop(context);
-    sendPushNotification();
   }
 
   @override
@@ -161,25 +208,27 @@ class NuevaCitaState extends State<NuevaCita> {
         title: Text(widget.citaIndex != null ? 'Editar Cita' : 'Nueva Cita'),
       ),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
               controller: tituloController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Titulo',
               ),
+              onChanged: mayusculaPrimeraLetra,
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             TextField(
               readOnly: true,
               onTap: () async {
                 DateTime? pickedDate = await showDatePicker(
                   context: context,
                   initialDate: DateTime.now(),
-                  firstDate: DateTime.now(),
+                  firstDate: DateTime(DateTime.now().year - 5),
                   lastDate: DateTime(DateTime.now().year + 5),
+                  
                 );
                 if (pickedDate != null) {
                   setState(() {
@@ -194,14 +243,15 @@ class NuevaCitaState extends State<NuevaCita> {
                   });
                 }
               },
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Fecha Inicio',
               ),
               controller: TextEditingController(
+                // ignore: unnecessary_null_comparison
                 text: fechaInicio != null ? dateFormat.format(fechaInicio) : '',
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             Row(
               children: [
                 Expanded(
@@ -211,6 +261,12 @@ class NuevaCitaState extends State<NuevaCita> {
                       TimeOfDay? pickedTime = await showTimePicker(
                         context: context,
                         initialTime: TimeOfDay.fromDateTime(fechaInicio),
+                        builder: (BuildContext context, Widget? child) {
+                          return MediaQuery(
+                            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+                            child: child!,
+                          );
+                        },
                       );
                       if (pickedTime != null) {
                         setState(() {
@@ -224,15 +280,16 @@ class NuevaCitaState extends State<NuevaCita> {
                         });
                       }
                     },
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Hora de Inicio',
                     ),
                     controller: TextEditingController(
+                      // ignore: unnecessary_null_comparison
                       text: fechaInicio != null ? timeFormat.format(fechaInicio) : '',
                     ),
                   ),
                 ),
-                SizedBox(width: 16.0),
+                const SizedBox(width: 16.0),
                 Expanded(
                   child: TextField(
                     readOnly: true,
@@ -240,6 +297,12 @@ class NuevaCitaState extends State<NuevaCita> {
                       TimeOfDay? pickedTime = await showTimePicker(
                         context: context,
                         initialTime: TimeOfDay.fromDateTime(fechaFin),
+                        builder: (BuildContext context, Widget? child) {
+                          return MediaQuery(
+                            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+                            child: child!,
+                          );
+                        },
                       );
                       if (pickedTime != null) {
                         setState(() {
@@ -253,40 +316,41 @@ class NuevaCitaState extends State<NuevaCita> {
                         });
                       }
                     },
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Hora de Fin',
                     ),
                     controller: TextEditingController(
+                      // ignore: unnecessary_null_comparison
                       text: fechaFin != null ? timeFormat.format(fechaFin) : '',
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 16.0),
-            showUserDropdown
+            const SizedBox(height: 16.0),
+            mostrarMenu
                 ? DropdownButton<String>(
-                    value: selectedUser,
+                    value: usuarioSeleccionado,
                     onChanged: (String? newValue) {
                       setState(() {
-                        selectedUser = newValue!;
+                        usuarioSeleccionado = newValue!;
                       });
                     },
-                    items: usersList.map((String user) {
+                    items: listaUsuarios.map((String user) {
                       return DropdownMenuItem<String>(
                         value: user,
                         child: Text(user),
                       );
                     }).toList(),
-                    hint: Text('Seleccione un usuario'),
+                    hint: const Text('Seleccione un usuario'),
                   )
-                : SizedBox(),
-            SizedBox(height: 16.0),
+                : const SizedBox(),
+            const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: (){
                 guardarCita();
               },
-              child: Text('Guardar'),
+              child: const Text('Guardar'),
             ),
           ],
         ),
@@ -314,7 +378,7 @@ class NuevaCitaState extends State<NuevaCita> {
               'id': '1',
               'status': 'done'
             },
-            'to': await getUserToken(selectedUser),
+            'to': await conseguirUserToken(usuarioSeleccionado),
           },
         ),
       );
@@ -322,24 +386,6 @@ class NuevaCitaState extends State<NuevaCita> {
     } catch (e) {
       e;
     }
-  }
-
-  Future<String> getUserToken(String? selectedUser) async {
-    if (userRole == 'administrador') {
-      // Fetch the selected user's token from the database based on the selectedUser
-      DatabaseReference userRef = _database.reference().child('users');
-      DatabaseEvent snapshot = await userRef.orderByChild('usuario').equalTo(selectedUser).once();
-      Map<dynamic, dynamic> userData = snapshot.snapshot.value as Map<dynamic, dynamic>;
-      if (userData != null && userData.isNotEmpty) {
-        String userId = userData.keys.first.toString();
-        String userToken = userData[userId]['token'];
-        return userToken;
-      }
-    } else {
-      // Return the admin's token
-      return adminToken ?? '';
-    }
-    return '';
   }
 }
 

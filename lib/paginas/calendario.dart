@@ -52,20 +52,20 @@ class CalendarioState extends State<Calendario> {
     }
   }
 
-void fetchUserRoleAndCargaCitas() async {
-  await fetchUserRole();
-  cargaCitas();
-  if (mostrarMenu) {
-    DatabaseReference usersRef = baseDatos.ref().child('users');
-    usersRef.once().then((DatabaseEvent snapshot) {
-      Map<dynamic, dynamic> usersMap = snapshot.snapshot.value as Map<dynamic, dynamic>;
-      setState(() {
-        listaUsuarios = usersMap.entries.map((e) => e.value['usuario']).toList().cast<String>();
-        usuarioSeleccionado = listaUsuarios.isNotEmpty ? listaUsuarios[0] : '';
+  void fetchUserRoleAndCargaCitas() async {
+    await fetchUserRole();
+    cargaCitas();
+    if (mostrarMenu) {
+      DatabaseReference usersRef = baseDatos.ref().child('users');
+      usersRef.once().then((DatabaseEvent snapshot) {
+        Map<dynamic, dynamic> usersMap = snapshot.snapshot.value as Map<dynamic, dynamic>;
+        setState(() {
+          listaUsuarios = usersMap.entries.map((e) => e.value['usuario']).toList().cast<String>();
+          usuarioSeleccionado = listaUsuarios.isNotEmpty ? listaUsuarios[0] : '';
+        });
       });
-    });
+    }
   }
-}
 
   Future<String> conseguirRol(String userId) async {
     final userRoleRef = baseDatos.ref().child('users/$userId/rol');
@@ -150,8 +150,10 @@ void fetchUserRoleAndCargaCitas() async {
                 ));
                 DataSource dataSource = DataSource(appointments);
                 dataSource.actualizarCita(appointments);
-                setState(() {});
                 dataSource.notifyListeners(CalendarDataSourceAction.add, [appointments.last]);
+                if (mounted){
+                  setState(() {});
+                }
               }
             }
           });
@@ -285,6 +287,7 @@ void fetchUserRoleAndCargaCitas() async {
       body: SfCalendar(
         view: CalendarView.month,
         initialDisplayDate: fechaActual,
+        firstDayOfWeek: 1,
         dataSource: listaCitas(),
         onTap: (CalendarTapDetails details) {
           if (details.targetElement == CalendarElement.calendarCell) {

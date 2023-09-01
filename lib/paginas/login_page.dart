@@ -12,17 +12,17 @@ class LoginPage extends StatefulWidget {
 }
 
 class LoginPageState extends State<LoginPage> {
-  String? errorMessage = '';
+  String? mensajeError = '';
   bool isLogin = true;
 
   final TextEditingController controllerEmail = TextEditingController();
-  final TextEditingController controllerPassword = TextEditingController();
+  final TextEditingController controllerContrasena = TextEditingController();
 
-  Widget _errorMessage() {
+  Widget errorMensaje() {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
       child: Text(
-        errorMessage == '' ? '' : '$errorMessage',
+        mensajeError == '' ? '' : '$mensajeError',
         style: const TextStyle(
           color: Colors.red,
         ),
@@ -30,44 +30,39 @@ class LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future<void> signInWithEmailAndPassword() async {
-    String errorMessage = '';
+  Future<void> accederUsuario() async {
+    String error = '';
 
     if (controllerEmail.text.isEmpty ||
-        controllerPassword.text.isEmpty) {
-      errorMessage = 'Falta información en algún campo';
+        controllerContrasena.text.isEmpty) {
+      error = 'Falta información en algún campo';
     } else {
       try {
-        await Auth().signInWithEmailAndPassword(
+        await Auth().accederUsuario(
           email: controllerEmail.text,
-          password: controllerPassword.text,
+          password: controllerContrasena.text,
         );
+        // ignore: use_build_context_synchronously
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Menu()),
+          MaterialPageRoute(builder: (context) => const Menu()),
         );
       } on FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found') {
-          errorMessage = 'El correo introducido no está registrado.';
+          error = 'El correo introducido no está registrado.';
         } else if (e.code == 'wrong-password') {
-          errorMessage = 'Contraseña incorrecta.';
+          error = 'Contraseña incorrecta.';
         }
       } catch (e) {
-        errorMessage = 'Correo o contraseña incorrectos';
+        error = 'Correo o contraseña incorrectos';
       }
     }
     setState(() {
-      this.errorMessage = errorMessage;
+      mensajeError = error;
     });
   }
 
-
-
-  Widget _title() {
-    return const Text('APPBU-S');
-  }
-
-  Widget _entryField(String title, TextEditingController controller) {
+  Widget campoTexto(String title, TextEditingController controller) {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
@@ -76,14 +71,14 @@ class LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _submitButton() {
+  Widget botonAcceder() {
     return ElevatedButton(
-      onPressed: signInWithEmailAndPassword,
+      onPressed: accederUsuario,
       child: const Text('Entrar'),
     );
   }
 
-  Widget _loginOrRegisterButton() {
+  Widget botonRegistrarse() {
     return TextButton(
       onPressed: () {
         Navigator.push(
@@ -91,7 +86,7 @@ class LoginPageState extends State<LoginPage> {
           MaterialPageRoute(builder: (context) => const RegisterPage()),
         );
       },
-      child: Text('Registrarse'),
+      child: const Text('Registrarse'),
     );
   }
 
@@ -99,7 +94,7 @@ class LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: _title(),
+        title: const Text('APPBU-S'),
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
@@ -111,11 +106,11 @@ class LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            _entryField('Correo', controllerEmail),
-            _entryField('Contraseña', controllerPassword),
-            _errorMessage(),
-            _submitButton(),
-            _loginOrRegisterButton(),
+            campoTexto('Correo', controllerEmail),
+            campoTexto('Contraseña', controllerContrasena),
+            errorMensaje(),
+            botonAcceder(),
+            botonRegistrarse(),
           ],
         ),
       ),

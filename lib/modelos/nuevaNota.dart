@@ -9,6 +9,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 
 class NuevaNota extends StatefulWidget {
+  const NuevaNota({super.key});
+
   @override
   NuevaNotaState createState() => NuevaNotaState();
 }
@@ -16,7 +18,6 @@ class NuevaNota extends StatefulWidget {
 class NuevaNotaState extends State<NuevaNota> {
   TextEditingController titulo = TextEditingController();
   TextEditingController contenido = TextEditingController();
-
   final baseDatos = FirebaseDatabase.instance;
   String? adminToken;
 
@@ -31,14 +32,11 @@ class NuevaNotaState extends State<NuevaNota> {
   }
 
   Future<void> fetchAdminToken() async {
-    final usersRef = baseDatos.reference().child('users');
+    final usersRef = baseDatos.ref().child('users');
     final DatabaseEvent dataSnapshot = await usersRef.once();
-    
     final usuarios = dataSnapshot.snapshot.value as Map<dynamic, dynamic>;
-
     String? adminUserId;
     
-    // Buscar el usuario con el rol de administrador
     usuarios.forEach((userId, userData) {
       final rol = userData['rol'] as String?;
       if (rol == 'administrador') {
@@ -46,33 +44,55 @@ class NuevaNotaState extends State<NuevaNota> {
         return;
       }
     });
-
     if (adminUserId != null) {
-      final adminTokenRef = baseDatos.reference().child('users/$adminUserId/token');
+      final adminTokenRef = baseDatos.ref().child('users/$adminUserId/token');
       final DatabaseEvent tokenSnapshot = await adminTokenRef.once();
       adminToken = tokenSnapshot.snapshot.value as String?;
     }
-
     setState(() {});
+  }
+
+  void mayusculaPrimeraLetraTitulo(String input) {
+    if (input.isNotEmpty) {
+      titulo.text =
+          input[0].toUpperCase() + (input.length > 1 ? input.substring(1).toLowerCase() : '');
+
+      titulo.selection = TextSelection.fromPosition(
+        TextPosition(offset: titulo.text.length),
+      );
+    }
+  }
+
+  void mayusculaPrimeraLetraContenido(String input) {
+    if (input.isNotEmpty) {
+      // Save the current cursor position
+      final cursorPosition = contenido.selection.start;
+
+      contenido.text =
+          input[0].toUpperCase() + (input.length > 1 ? input.substring(1) : '');
+
+      contenido.selection = TextSelection.fromPosition(
+        TextPosition(offset: cursorPosition),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     var rng = Random();
     var key_ = rng.nextInt(10000);
-    final datosRef = baseDatos.reference().child('notas/$key_');
-
+    final datosRef = baseDatos.ref().child('notas/$key_');
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Nueva Nota'),
+        title: const Text('Nueva Nota'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => Notas()),
+              MaterialPageRoute(builder: (_) => const Notas()),
             );
           },
         ),
@@ -80,7 +100,7 @@ class NuevaNotaState extends State<NuevaNota> {
       body: Container(
         child: Column(
           children: [
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             Container(
@@ -88,12 +108,13 @@ class NuevaNotaState extends State<NuevaNota> {
               decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 2)),
               child: TextField(
                 controller: titulo,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Titulo',
                 ),
+                onChanged: mayusculaPrimeraLetraTitulo,
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             Container(
@@ -101,13 +122,15 @@ class NuevaNotaState extends State<NuevaNota> {
               decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 2)),
               child: TextField(
                 controller: contenido,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Contenido',
                 ),
-                maxLines: null,
+                maxLines: 6,
+                maxLength: 150,
+                onChanged: mayusculaPrimeraLetraContenido,
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 10,
             ),
             MaterialButton(
@@ -126,9 +149,9 @@ class NuevaNotaState extends State<NuevaNota> {
                   "UserId": nuevaNota.userId,
                 }).asStream();
                 sendPushNotification();
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => Notas()));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Notas()));
               },
-              child: Text(
+              child: const Text(
                 "Guardar",
                 style: TextStyle(
                   color: Colors.white,

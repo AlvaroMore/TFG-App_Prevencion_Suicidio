@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:appbu_s/modelos/musica.dart';
 import 'package:appbu_s/modelos/frases.dart';
 
-class media extends StatelessWidget {
+class Media extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -22,9 +22,9 @@ class EnlaceState extends State<Enlace> {
   Future<void> fetchUserRole() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      String role = await conseguirRolUsuario(user.uid);
+      String rol = await conseguirRolUsuario(user.uid);
       setState(() {
-        admin = role == 'administrador';
+        admin = rol == 'administrador';
       });
     }
   }
@@ -34,6 +34,11 @@ class EnlaceState extends State<Enlace> {
     DatabaseEvent snapshot = await userRoleRef.once();
     var snapshotValue = snapshot.snapshot.value;
     return (snapshotValue as String?) ?? '';
+  }
+
+  void borrarLink(String linkKey) {
+    DatabaseReference databaseReference = FirebaseDatabase.instance.ref().child('links');
+    databaseReference.child(linkKey).remove().then((_) {});
   }
 
   @override
@@ -53,15 +58,15 @@ class EnlaceState extends State<Enlace> {
           : null,
       body: Container(
         padding: const EdgeInsets.all(10),
-        child: _buildLinksList(),
+        child: listaEnlaces(),
       ),
     );
   }
 
-  Widget _buildLinksList() {
-    final linksReference = FirebaseDatabase.instance.ref().child('links');
+  Widget listaEnlaces() {
+    final linksRef = FirebaseDatabase.instance.ref().child('links');
     return FirebaseAnimatedList(
-      query: linksReference,
+      query: linksRef,
       itemBuilder: (context, snapshot, animation, index) {
         final linkData = snapshot.value as Map<dynamic, dynamic>;
         final linkKey = snapshot.key;
@@ -75,7 +80,8 @@ class EnlaceState extends State<Enlace> {
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: ElevatedButton(
                   onPressed: () async {
-                    await launchUrl(url);
+                    final uri = Uri.parse(url);
+                    await launchUrl(uri);
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
@@ -97,11 +103,6 @@ class EnlaceState extends State<Enlace> {
         );
       },
     );
-  }
-
-  void borrarLink(String linkKey) {
-    DatabaseReference databaseReference = FirebaseDatabase.instance.ref().child('links');
-    databaseReference.child(linkKey).remove().then((_) {});
   }
 }
 

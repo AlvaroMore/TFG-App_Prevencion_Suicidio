@@ -2,18 +2,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 class Auth {
-  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-
-  User? get currentUser => _firebaseAuth.currentUser;
-
-  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
+  final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+  User? get currentUser => firebaseAuth.currentUser;
+  Stream<User?> get authStateChanges => firebaseAuth.authStateChanges();
   
-  Future<void> signInWithEmailAndPassword({
+  Future<void> accederUsuario({
     required String email,
     required String password,
   }) async {
     try {
-      await _firebaseAuth.signInWithEmailAndPassword(
+      await firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -22,18 +20,17 @@ class Auth {
     }
   }
 
-  Future<void> createUserWithEmailAndPassword({
+  Future<void> crearUsuario({
     required String email,
     required String password,
     required String rol,
     required String usuario,
   }) async {
     try {
-      final userCredential = await _firebaseAuth
+      final userCredential = await firebaseAuth
           .createUserWithEmailAndPassword(email: email, password: password);
-
       if (userCredential.user != null) {
-        final databaseReference = FirebaseDatabase.instance.reference();
+        final databaseReference = FirebaseDatabase.instance.ref();
         await databaseReference
             .child('users')
             .child(userCredential.user!.uid)
@@ -46,7 +43,7 @@ class Auth {
 
   Future<void> signOut() async {
     try {
-      await _firebaseAuth.signOut();
+      await firebaseAuth.signOut();
     } catch (e) {
       throw Exception('Failed to sign out: $e');
     }

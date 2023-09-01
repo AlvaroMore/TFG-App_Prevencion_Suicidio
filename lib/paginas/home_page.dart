@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:appbu_s/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:appbu_s/paginas/calendario.dart';
-import 'package:app_settings/app_settings.dart';
 import 'package:appbu_s/paginas/notas.dart';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -25,9 +24,7 @@ class MenuState extends State<Menu> {
 
   Future<void> tokenDispositivo() async {
     final FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-
     final String deviceToken = (await firebaseMessaging.getToken())!;
-
     final DatabaseReference deviceTokenRef =
         FirebaseDatabase.instance.ref().child('users/${usuario?.uid}/token');
     deviceTokenRef.set(deviceToken);
@@ -48,36 +45,33 @@ class MenuState extends State<Menu> {
     }
   }
 
-  Widget titulo(){
-    return const Text('Inicio');
-  }
   Widget userId(){
     return Text(usuario?.email ?? 'Usuario');
   }
 
-  Widget _calendario(BuildContext context) {
+  Widget calendario(BuildContext context) {
     return ElevatedButton(
       child: const Text('Calendario'),
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => Calendario()),
+          MaterialPageRoute(builder: (context) => const Calendario()),
         );
       }
     );
   }
-  Widget _media(BuildContext context) {
+  Widget media(BuildContext context) {
     return ElevatedButton(
       child: const Text('Media'),
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => media()),
+          MaterialPageRoute(builder: (context) => Media()),
         );
       }
     );
   }
-  Widget _URL(BuildContext context) {
+  Widget enlace(BuildContext context) {
     return ElevatedButton(
       child: const Text('URL'),
       onPressed: () {
@@ -89,13 +83,13 @@ class MenuState extends State<Menu> {
     );
   }
 
-  Widget _notas(BuildContext context) {
+  Widget notas(BuildContext context) {
     return ElevatedButton(
       child: const Text('Notas'),
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => Notas()),
+          MaterialPageRoute(builder: (context) => const Notas()),
         );
       }
     );
@@ -105,8 +99,9 @@ class MenuState extends State<Menu> {
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
-        title: titulo(),
+        title: const Text('APPBU-S'),
         automaticallyImplyLeading: false,
+        centerTitle: true,
       ),
       
       body: Container(
@@ -130,16 +125,16 @@ class MenuState extends State<Menu> {
                         onPressed: (){
                           Navigator.push(
                             context, 
-                            MaterialPageRoute(builder: (context) => Calendario()),
+                            MaterialPageRoute(builder: (context) => const Calendario()),
                             );
                         },
-                        child: Icon(Icons.calendar_today, size: 60, color: Colors.black),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromRGBO(253, 229, 9, 1),
+                          backgroundColor: const Color.fromRGBO(253, 229, 9, 1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(75)
                           )
                         ),
+                        child: const Icon(Icons.calendar_today, size: 60, color: Colors.black),
                       ),
                     )
                   ],
@@ -153,16 +148,16 @@ class MenuState extends State<Menu> {
                         onPressed: (){
                           Navigator.push(
                             context, 
-                            MaterialPageRoute(builder: (context) => media()),
+                            MaterialPageRoute(builder: (context) => Media()),
                             );
                         },
-                        child: Icon(Icons.play_arrow, size: 80, color: Colors.black),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromARGB(255, 31, 161, 35),
+                          backgroundColor: const Color.fromARGB(255, 31, 161, 35),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(75)
                           )
                         ),
+                        child: const Icon(Icons.play_arrow, size: 80, color: Colors.black),
                       ),
                     )
                   
@@ -174,12 +169,12 @@ class MenuState extends State<Menu> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 Column(
-                  children: <Widget>[
+                  children: const <Widget>[
                     SizedBox(height: 75)
                   ],
                 ),
                 Column(
-                  children: <Widget>[
+                  children: const <Widget>[
                     SizedBox(height: 75)
                   ],
                 ),
@@ -200,13 +195,13 @@ class MenuState extends State<Menu> {
                             MaterialPageRoute(builder: (context) => Enlace()),
                             );
                         },
-                        child: Icon(Icons.travel_explore, size: 60, color: Colors.black),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromARGB(255, 30, 154, 255),
+                          backgroundColor: const Color.fromARGB(255, 30, 154, 255),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(75)
                           )
                         ),
+                        child: const Icon(Icons.travel_explore, size: 60, color: Colors.black),
                       ),
                     )
                   ],
@@ -220,16 +215,16 @@ class MenuState extends State<Menu> {
                         onPressed: (){
                           Navigator.push(
                             context, 
-                            MaterialPageRoute(builder: (context) => Notas()),
+                            MaterialPageRoute(builder: (context) => const Notas()),
                             );
                         },
-                        child: Icon(Icons.edit_note, size: 70, color: Colors.black),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color.fromARGB(255, 255, 145, 0),
+                          backgroundColor: const Color.fromARGB(255, 255, 145, 0),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(75)
                           )
                         ),
+                        child: const Icon(Icons.edit_note, size: 70, color: Colors.black),
                       ),
                     )
                   ],
@@ -240,12 +235,12 @@ class MenuState extends State<Menu> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 Column(
-                  children: <Widget>[
+                  children: const <Widget>[
                     SizedBox(height: 75)
                   ],
                 ),
                 Column(
-                  children: <Widget>[
+                  children: const <Widget>[
                     SizedBox(height: 75)
                   ],
                 ),
@@ -267,13 +262,13 @@ class MenuState extends State<Menu> {
                                 MaterialPageRoute(builder: (context) => const LoginPage()),
                               );
                             },
-                        child: Icon(Icons.logout, size: 50, color: Colors.black),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red  ,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(75)
                           )
                         ),
+                        child: const Icon(Icons.logout, size: 50, color: Colors.black),
                       ),
                     )
                   ],

@@ -171,7 +171,7 @@ class blocNotasState extends State<blocNotas> {
                 final idUsuarioNota = datosNota['UserId'] as String;
 
                 if (userRol == 'administrador') {
-                  if (usuarioSeleccionado.isEmpty || idUsuarioNota == usuarioSeleccionadoId) {            
+                  if (idUsuarioNota == usuarioSeleccionadoId) {            
             var valorString = datosNota.toString();
             valor = valorString.replaceAll(
                 RegExp("{|}|Contenido: |Titulo: |FechaCreacion: |UserId: "), "");
@@ -203,7 +203,7 @@ class blocNotasState extends State<blocNotas> {
                             decoration: BoxDecoration(border: Border.all()),
                             child: TextField(
                               controller: tituloEditar,
-                              textAlign: TextAlign.center,
+                              //textAlign: TextAlign.center,
                               decoration: const InputDecoration(
                                 hintText: 'Titulo',
                               ),
@@ -215,7 +215,7 @@ class blocNotasState extends State<blocNotas> {
                             decoration: BoxDecoration(border: Border.all()),
                             child: TextField(
                               controller: contenidoEditar,
-                              textAlign: TextAlign.center,
+                              //textAlign: TextAlign.center,
                               decoration: const InputDecoration(
                                 hintText: 'Contenido',
                               ),
@@ -330,7 +330,7 @@ class blocNotasState extends State<blocNotas> {
                             decoration: BoxDecoration(border: Border.all()),
                             child: TextField(
                               controller: tituloEditar,
-                              textAlign: TextAlign.center,
+                              //textAlign: TextAlign.center,
                               decoration: const InputDecoration(
                                 hintText: 'Titulo',
                               ),
@@ -342,7 +342,7 @@ class blocNotasState extends State<blocNotas> {
                             decoration: BoxDecoration(border: Border.all()),
                             child: TextField(
                               controller: contenidoEditar,
-                              textAlign: TextAlign.center,
+                              //textAlign: TextAlign.center,
                               decoration: const InputDecoration(
                                 hintText: 'Contenido',
                               ),
@@ -425,7 +425,137 @@ class blocNotasState extends State<blocNotas> {
                 ),
               );
             }
+          } else if (userRol == 'administrador') {
+            if(usuarioSeleccionado.isEmpty){
+            var valorString = datosNota.toString();
+            valor = valorString.replaceAll(
+                RegExp("{|}|Contenido: |Titulo: |FechaCreacion: |UserId: "), "");
+            valor = valor.trim();
+            dato = valor.split(',');
+            notasFiltradas.add(datosNota);
+
+            if (dato.length >= 2) {
+              TextEditingController tituloEditar = TextEditingController(text: dato[2]);
+              TextEditingController contenidoEditar = TextEditingController(text: dato[0]);
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    key = snapshot.key;
+                  });
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text(
+                        "Editar Nota",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      content: Column(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(border: Border.all()),
+                            child: TextField(
+                              controller: tituloEditar,
+                              //textAlign: TextAlign.center,
+                              decoration: const InputDecoration(
+                                hintText: 'Titulo',
+                              ),
+                              maxLines: null,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            decoration: BoxDecoration(border: Border.all()),
+                            child: TextField(
+                              controller: contenidoEditar,
+                              //textAlign: TextAlign.center,
+                              decoration: const InputDecoration(
+                                hintText: 'Contenido',
+                              ),
+                              maxLines: null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      actions: <Widget>[
+                        MaterialButton(
+                          onPressed: () {
+                            Navigator.of(ctx).pop();
+                          },
+                          color: Colors.blue,
+                          child: const Text(
+                            "Cancelar",
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        MaterialButton(
+                          onPressed: () async {
+                            await actualizar(
+                              tituloEditar.text,
+                              contenidoEditar.text,
+                              user!.uid,
+                            );
+                            // ignore: use_build_context_synchronously
+                            Navigator.of(ctx).pop();
+                          },
+                          color: Colors.blue,
+                          child: const Text(
+                            "Aceptar",
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: Container(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ListTile(
+                      shape: RoundedRectangleBorder(
+                        side: const BorderSide(
+                          color: Colors.white,
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      tileColor: const Color.fromARGB(171, 152, 209, 255),
+                      trailing: IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Color.fromARGB(255, 255, 85, 72),
+                        ),
+                        onPressed: () {
+                          datosRef.child(snapshot.key!).remove();
+                        },
+                      ),
+                      title: Text(
+                        dato[2],
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        dato[0],
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
+            }
           }
+
           return const SizedBox();
               }
             ),

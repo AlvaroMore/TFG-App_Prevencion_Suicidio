@@ -3,89 +3,103 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../auth.dart';
 import 'home_page.dart';
+import 'dart:core';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<RegisterPage> createState() => RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class RegisterPageState extends State<RegisterPage> {
   String? selectedRole;
-  String? errorMessage = '';
+  String? mensajeError = '';
 
-  final TextEditingController _controllerEmail = TextEditingController();
-  final TextEditingController _controllerPassword = TextEditingController();
-  final TextEditingController _controllerUsuario = TextEditingController();  
-  Widget _title() {
-    return const Text('APPBU-S');
-  }
+  final TextEditingController controllerEmail = TextEditingController();
+  final TextEditingController controllerContrasena = TextEditingController();
+  final TextEditingController controllerUsuario = TextEditingController();
+  final TextEditingController controllerRepetirContrasena = TextEditingController();
 
-  Widget _entryField(String title, TextEditingController controller) {
+  Widget campoTexto(String title, TextEditingController controller) {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
         labelText: title,
       ),
+      obscureText: title == 'Contraseña' || title == 'Repetir Contraseña',
     );
   }
 
-  Widget _errorMessage() {
+  Widget errorMensaje() {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
-      child: Text(
-        errorMessage == '' ? '' : '$errorMessage',
-        style: const TextStyle(
-          color: Colors.red,
-        ),
+      child: Column(
+        children: [
+          Text(
+            mensajeError == '' ? '' : '$mensajeError',
+            style: const TextStyle(
+              color: Colors.red,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Future<void> createUsersWithEmailAndPassword() async {
-    String errorMessage = '';
+  Future<void> crearUsuario() async {
+    String error = '';
 
-    if (_controllerUsuario.text.isEmpty ||
-        _controllerEmail.text.isEmpty ||
-        _controllerPassword.text.isEmpty) {
-      errorMessage = 'Falta información en algún campo';
-    } else if (_controllerPassword.text.length < 6) {
-      errorMessage = 'La contraseña debe tener 6 o más caracteres';
+    if (controllerUsuario.text.isEmpty ||
+        controllerEmail.text.isEmpty ||
+        controllerContrasena.text.isEmpty) {
+      error = 'Falta información en algún campo';
+    } else if (controllerContrasena.text.length < 6) {
+      error = 'La contraseña debe tener 6 o más caracteres';
+    } else if(!correoValido(controllerEmail.text)) {
+      error = 'Formato de correo no válido';
+    } else if(controllerContrasena.text != controllerRepetirContrasena.text) {
+      error = 'La contraseña no coincide';
     } else {
       try {
-        await Auth().createUserWithEmailAndPassword(
-          usuario: _controllerUsuario.text,
-          email: _controllerEmail.text,
-          password: _controllerPassword.text,
+        await Auth().crearUsuario(
+          usuario: controllerUsuario.text,
+          email: controllerEmail.text,
+          password: controllerContrasena.text,
           rol: selectedRole ?? 'usuario',
         );
+        // ignore: use_build_context_synchronously
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Menu()),
+          MaterialPageRoute(builder: (context) => const Menu()),
         );
       } on FirebaseAuthException catch (e) {
         if (e.code == 'email-already-in-use') {
-          errorMessage = 'El correo introducido ya está registrado';
+          error = 'El correo introducido ya está registrado';
         }
       } catch (e) {
-        errorMessage = 'El correo introducido ya está registrado';
+        error = 'El correo introducido ya está registrado';
       }
     }
     setState(() {
-      this.errorMessage = errorMessage;
+      mensajeError = error;
     });
   }
 
+  bool correoValido(String email) {
+    // Use a regular expression to validate the email format
+    final emailRegExp = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+    return emailRegExp.hasMatch(email);
+  }
 
-  Widget _submitButton() {
+  Widget botonRegistrarse() {
     return ElevatedButton(
-      onPressed: createUsersWithEmailAndPassword,
+      onPressed: crearUsuario,
       child: const Text('Registrarse'),
     );
   }
 
-  Widget _loginOrRegisterButton() {
+  Widget botonAcceder() {
     return TextButton(
       onPressed: () {
         Navigator.push(
@@ -101,7 +115,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: _title(),
+        title: const Text('APPBU-S'),
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
@@ -113,12 +127,13 @@ class _RegisterPageState extends State<RegisterPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            _entryField('Usuario', _controllerUsuario),
-            _entryField('Correo', _controllerEmail),
-            _entryField('Contraseña', _controllerPassword),
-            _errorMessage(),
-            _submitButton(),
-            _loginOrRegisterButton(),
+            campoTexto('Usuario', controllerUsuario),
+            campoTexto('Correo', controllerEmail),
+            campoTexto('Contraseña', controllerContrasena),
+            campoTexto('Repetir Contraseña', controllerRepetirContrasena),
+            errorMensaje(),
+            botonRegistrarse(),
+            botonAcceder(),
           ],
         ),
       ),

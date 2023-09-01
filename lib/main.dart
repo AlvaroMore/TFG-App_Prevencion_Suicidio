@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:appbu_s/paginas/calendario.dart';
 import 'package:appbu_s/paginas/enlace.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> backgroundHandler(RemoteMessage message) async {
   String? title = message.notification!.title;
@@ -26,12 +27,19 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       routes: {
-        '/calendario': (context) => Calendario(),
+        '/calendario': (context) => const Calendario(),
       },
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate
+      ],
+      supportedLocales: const [
+        Locale('es'),
+      ],
       home: const LoginPage(),
     );
   }
