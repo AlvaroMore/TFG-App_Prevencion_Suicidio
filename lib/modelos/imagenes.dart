@@ -3,6 +3,7 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class Imagenes extends StatefulWidget {
   const Imagenes({super.key});
@@ -25,11 +26,9 @@ class ImagenesState extends State<Imagenes> {
     final storage = firebase_storage.FirebaseStorage.instance;
     final firebase_storage.ListResult result =
         await storage.ref().child('images/${user?.uid}').listAll();
-
     final urls = await Future.wait(
       result.items.map((ref) => ref.getDownloadURL()),
     );
-
     setState(() {
       imagenes.addAll(urls);
     });
@@ -38,9 +37,7 @@ class ImagenesState extends State<Imagenes> {
   Future<void> borrarImagen(String imagen) async {
     final storage = firebase_storage.FirebaseStorage.instance;
     final ref = storage.refFromURL(imagen);
-
     await ref.delete();
-
     setState(() {
       imagenes.remove(imagen);
     });
@@ -81,33 +78,30 @@ class ImagenesState extends State<Imagenes> {
   Future<void> subirImagen() async {
     final user = FirebaseAuth.instance.currentUser;
     final imagePicker = ImagePicker();
-    final pickedImage = await imagePicker.pickImage(
+    final imagenSeleccionada = await imagePicker.pickImage(
       source: ImageSource.gallery,
     );
 
-    if (pickedImage != null) {
+    if (imagenSeleccionada != null) {
       final storage = firebase_storage.FirebaseStorage.instance;
-      final ref = storage.ref().child('images/${user?.uid}/${pickedImage.name}');
+      final ref = storage.ref().child('images/${user?.uid}/${imagenSeleccionada.name}');
       final i = ref.putFile(
-        File(pickedImage.path),
+        File(imagenSeleccionada.path),
         firebase_storage.SettableMetadata(contentType: 'image/*'),
       );
-
       await i.whenComplete(() {});
-
       final imagen = await ref.getDownloadURL();
-
       setState(() {
         imagenes.add(imagen);
       });
     }
   }
 
-  void viewImage(BuildContext context, String imagen) {
+  void verImagen(BuildContext context, String imagen) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ImagenPage(imagen: imagen),
+        builder: (context) => ImagenPagina(imagen: imagen),
       ),
     );
   }
@@ -128,13 +122,15 @@ class ImagenesState extends State<Imagenes> {
         itemBuilder: (context, index) {
           final imagen = imagenes[index];
           return GestureDetector(
-            onTap: () => viewImage(context, imagen),
+            onTap: () => verImagen(context, imagen),
             onLongPress: () => mensajeEliminacion(context, imagen),
             child: Hero(
               tag: imagen,
-              child: Image.network(
-                imagen,
+              child: CachedNetworkImage(
+                imageUrl: imagen,
                 fit: BoxFit.cover,
+                placeholder: (context, url) => const CircularProgressIndicator(),
+                errorWidget: (context, url, error) => const Icon(Icons.error),
               ),
             ),
           );
@@ -148,10 +144,9 @@ class ImagenesState extends State<Imagenes> {
   }
 }
 
-class ImagenPage extends StatelessWidget {
+class ImagenPagina extends StatelessWidget {
   final String imagen;
-
-  const ImagenPage({super.key, required this.imagen});
+  const ImagenPagina({super.key, required this.imagen});
 
   @override
   Widget build(BuildContext context) {

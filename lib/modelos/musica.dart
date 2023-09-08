@@ -1,106 +1,138 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:appbu_s/modelos/reproductor.dart';
 
 class Musica extends StatefulWidget {
-  const Musica({super.key});
+  const Musica({Key? key});
 
   @override
   MusicaState createState() => MusicaState();
 }
 
 class MusicaState extends State<Musica> {
-  late AudioPlayer audioPlayer;
-  String filePath = '';
-  bool isPlaying = false;
+  String ruta = '';
+  bool reproduciendo = false;
+  Map<String, String> cancionesInfoMap = {};
+  AudioPlayer player = AudioPlayer();
 
   @override
   void initState() {
     super.initState();
-    audioPlayer = AudioPlayer();
+    cargarCancionesYMostrar();
   }
 
   Future<void> subirMusica() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.audio,
+      type: FileType.custom,
+      allowedExtensions: ['mp3'],
     );
 
     if (result != null) {
-      final archivo = result.files.single;
+      final archivo = File(result.files.single.path!);
+      if (archivo.existsSync()) {
+        final bytes = await archivo.readAsBytes();
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          Reference baseDatos = FirebaseStorage.instance.ref()
+              .child('musica/${user.uid}/${archivo.path.split('/').last}');
+          UploadTask uploadTask = baseDatos.putData(bytes);
+          await uploadTask.whenComplete(() {
+            setState(() {
+              ruta = archivo.path;
+              reproduciendo = false;
+            });
+          });
+        } 
+      }
+    }
+  }
 
-      Reference baseDatos = FirebaseStorage.instance.ref().child(archivo.name);
-      UploadTask uploadTask = baseDatos.putData(archivo.bytes!);
-      await uploadTask.whenComplete(() => null);
+  Future<List<String>> cargarCanciones() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final List<String> canciones = [];
+        Reference directorioUsuario = FirebaseStorage.instance.ref().child('musica/${user.uid}');
+        final ListResult result = await directorioUsuario.list();
+        for (final Reference ref in result.items) {
+          canciones.add(ref.fullPath);
+        }
+        return canciones;
+      } catch (e) {
+        return [];
+      }
+    } else {
+      return [];
+    }
+  }
 
+  Future<void> cargarCancionesYMostrar() async {
+    final canciones = await cargarCanciones();
+    if (canciones.isNotEmpty) {
+      final Map<String, String> infoMap = {};
+      for (final cancion in canciones) {
+        final ref = FirebaseStorage.instance.ref().child(cancion);
+        final url = await ref.getDownloadURL();
+        infoMap[cancion] = url;
+      }
       setState(() {
-        filePath = archivo.name;
-        isPlaying = false;
+        cancionesInfoMap = infoMap;
       });
     }
   }
 
-  Future<void> borrarMusica(String filePath) async {
-    Reference baseDatos= FirebaseStorage.instance.ref().child(filePath);
+  void reproducirCancion(String url) async {
+    await player.setUrl(url);
+    player.play();
+  }
+
+  Future<void> borrarMusica(String rutaArchivo) async {
+    Reference baseDatos = FirebaseStorage.instance.ref().child(rutaArchivo);
     await baseDatos.delete();
-
     setState(() {
-      if (isPlaying) {
-        audioPlayer.stop();
-        isPlaying = false;
-      }
-      filePath = '';
+      rutaArchivo = '';
     });
+    await cargarCancionesYMostrar();
   }
 
-  void reproducirMusica() {
-    if (filePath.isNotEmpty) {
-      if (isPlaying) {
-        audioPlayer.pause();
-      } else {
-        audioPlayer.play(filePath as Source);
-      }
-      setState(() {
-        isPlaying = !isPlaying;
-      });
-    }
-  }
-
-  Future<void> mensajeEliminacion(BuildContext context) async {
-    if (filePath.isNotEmpty) {
-      final result = await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Eliminar canción'),
-            content: const Text('¿Estás seguro de que quieres eliminar esta canción?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
-                child: const Text('Cancelar'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                child: const Text('Eliminar'),
-              ),
-            ],
-          );
-        },
-      );
-
-      if (result == true) {
-        borrarMusica(filePath);
-      }
-    }
+  Future<void> mensajeEliminacion(BuildContext context, String cancion) async {
+    final result = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Eliminar canción'),
+          content: const Text('¿Estás seguro de que quieres eliminar esta canción?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await borrarMusica(cancion);
+                // ignore: use_build_context_synchronously
+                Navigator.of(context).pop();
+                // ignore: use_build_context_synchronously
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Video eliminado')),
+                );
+              },
+              child: const Text('Eliminar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   void dispose() {
-    audioPlayer.dispose();
     super.dispose();
   }
 
@@ -108,27 +140,46 @@ class MusicaState extends State<Musica> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Musica'),
+        title: const Text('Música'),
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            if (filePath.isNotEmpty)
+            if (ruta.isNotEmpty)
               Text(
-                'Musica seleccionada: $filePath',
+                'Música seleccionada: $ruta',
                 style: const TextStyle(fontSize: 18),
               ),
             const SizedBox(height: 16),
-            GestureDetector(
-              onLongPress: () {
-                mensajeEliminacion(context);
-              },
-              child: IconButton(
-                onPressed: reproducirMusica,
-                icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-                iconSize: 48,
-              ),
+          if (cancionesInfoMap.isNotEmpty)
+            Column(
+              children: cancionesInfoMap.entries.map((entry) {
+                final cancion = entry.key;
+                final url = entry.value;
+                return GestureDetector(
+                  onLongPress: () {
+                    mensajeEliminacion(context, cancion);
+                  },
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => ReproductorMusica(
+                            audioUrl: url,
+                            nombreCancion: cancion.split('/').last,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      cancion.split('/').last,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
           ],
         ),
@@ -141,6 +192,9 @@ class MusicaState extends State<Musica> {
     );
   }
 }
+
+
+
 
 
 

@@ -26,9 +26,19 @@ class nuevaFraseState extends State<nuevaFrase> {
           'userId': user.uid,
           'frase': nuevaFrase,
         });
-
         Navigator.pop(context);
       }
+    }
+  }
+
+  void mayusculaPrimeraLetra(String input) {
+    if (input.isNotEmpty) {
+      final posicionCursor = fraseController.selection.start;
+      fraseController.text =
+          input[0].toUpperCase() + (input.length > 1 ? input.substring(1) : '');
+      fraseController.selection = TextSelection.fromPosition(
+        TextPosition(offset: posicionCursor),
+      );
     }
   }
 
@@ -54,6 +64,9 @@ class nuevaFraseState extends State<nuevaFrase> {
               decoration: const InputDecoration(
                 labelText: 'Escribe una frase',
               ),
+              onChanged: mayusculaPrimeraLetra,
+              maxLength: 100,
+              maxLines: 3,
             ),
             const SizedBox(height: 16),
             ElevatedButton(

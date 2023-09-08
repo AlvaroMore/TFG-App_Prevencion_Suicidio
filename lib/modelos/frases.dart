@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'nuevaFrase.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'nuevaFrase.dart';
 
 class Frases extends StatefulWidget {
   const Frases({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   FrasesState createState() => FrasesState();
 }
 
 class FrasesState extends State<Frases> {
-  // ignore: deprecated_member_use
-  final baseDatos = FirebaseDatabase.instance.reference();
+  final baseDatos = FirebaseDatabase.instance.ref();
   List<Map<String, dynamic>> listaFrases = [];
   late String userId;
 
@@ -39,7 +37,6 @@ class FrasesState extends State<Frases> {
         final Map<dynamic, dynamic> frasesMap =
             event.snapshot.value as Map<dynamic, dynamic>;
         final List<Map<String, dynamic>> frasesLista = [];
-
         frasesMap.forEach((key, value) {
           if (value['userId'] == userId) {
             frasesLista.add({
@@ -96,6 +93,61 @@ class FrasesState extends State<Frases> {
     );
   }
 
+  void editarFrase(Map<String, dynamic> frase) {
+    TextEditingController fraseEditarController =
+        TextEditingController(text: frase['frase']);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return SimpleDialog(
+          title: const Text('Editar Frase'),
+          contentPadding: const EdgeInsets.all(16.0),
+          children: [
+            TextFormField(
+              controller: fraseEditarController,
+              maxLines: null,
+              decoration: const InputDecoration(labelText: 'Frase'),
+            ),
+            const SizedBox(height: 16.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    actualizarFrase(frase, fraseEditarController.text);
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Frase actualizada')),
+                    );
+                  },
+                  child: const Text('Guardar'),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void actualizarFrase(Map<String, dynamic> frase, String nuevaFrase) {
+    final fraseBaseDatos = baseDatos.child('frases');
+
+    fraseBaseDatos.child(frase['key']).update({
+      'frase': nuevaFrase,
+    }).then((_) {
+      setState(() {
+        frase['frase'] = nuevaFrase;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,6 +160,7 @@ class FrasesState extends State<Frases> {
           final frase = listaFrases[index];
           return GestureDetector(
             onLongPress: () => mensajeEliminacion(context, frase),
+            onTap: () => editarFrase(frase),
             child: Container(
               decoration: BoxDecoration(
                 color: const Color.fromARGB(255, 169, 226, 252),
@@ -118,9 +171,11 @@ class FrasesState extends State<Frases> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    frase['frase'],
-                    style: const TextStyle(fontSize: 16.0),
+                  Flexible(
+                    child: Text(
+                      frase['frase'],
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
                   ),
                 ],
               ),
@@ -143,6 +198,7 @@ class FrasesState extends State<Frases> {
     );
   }
 }
+
 
 
 

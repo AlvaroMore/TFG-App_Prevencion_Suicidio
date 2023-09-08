@@ -55,6 +55,10 @@ dependencies:
   file_picker: ^5.2.11
   audioplayers: ^4.1.0
   flutter_localization: ^0.1.13
+  cached_network_image: ^3.2.3
+  video_thumbnail: ^0.5.3
+  open_file: ^3.3.2
+  just_audio: ^0.9.34
   
 dev_dependencies:
   flutter_test:
