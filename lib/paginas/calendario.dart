@@ -42,6 +42,7 @@ class CalendarioState extends State<Calendario> {
   bool mostrarMenu = false;
   List<String> listaUsuarios = [];
   DateTime fechaActual = DateTime.now();
+  final _citasStreamController = StreamController<List<Appointment>>();
 
   @override
   void initState() {
@@ -50,6 +51,13 @@ class CalendarioState extends State<Calendario> {
       fetchUserRoleAndCargaCitas();
       datosCargados = true;
     }
+  }
+
+  @override
+  void dispose() {
+    // Asegúrate de cerrar el controlador de flujo cuando el widget se elimine.
+    _citasStreamController.close();
+    super.dispose();
   }
 
   void fetchUserRoleAndCargaCitas() async {
@@ -167,6 +175,7 @@ class CalendarioState extends State<Calendario> {
       dataSource.actualizarCita(appointments);
       setState(() {});
     });
+    _citasStreamController.add(appointments);
   }
 
   String formatoFecha(DateTime date) {
@@ -284,48 +293,55 @@ class CalendarioState extends State<Calendario> {
             ),
         ],
       ),
-      body: SfCalendar(
-        view: CalendarView.month,
-        initialDisplayDate: fechaActual,
-        firstDayOfWeek: 1,
-        dataSource: listaCitas(),
-        onTap: (CalendarTapDetails details) {
-          if (details.targetElement == CalendarElement.calendarCell) {
-            DateTime diaPulsado = details.date!;
-            List<Appointment> citaPulsada = citasFecha(diaPulsado);
-            showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: Text(formatoFecha(diaPulsado)),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: mostrarCitas(context, citaPulsada),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('Cerrar'),
-                    ),
-                  ],
+      body: StreamBuilder<List<Appointment>>(
+        stream: _citasStreamController.stream,
+        initialData: appointments, // Datos iniciales (puedes establecerlo en una lista vacía si prefieres).
+        builder: (context, snapshot) {
+          final citas = snapshot.data ?? [];
+          return SfCalendar(
+            view: CalendarView.month,
+            initialDisplayDate: fechaActual,
+            firstDayOfWeek: 1,
+            dataSource: DataSource(citas),
+            onTap: (CalendarTapDetails details) {
+              if (details.targetElement == CalendarElement.calendarCell) {
+                DateTime diaPulsado = details.date!;
+                List<Appointment> citaPulsada = citasFecha(diaPulsado);
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Text(formatoFecha(diaPulsado)),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: mostrarCitas(context, citaPulsada),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Cerrar'),
+                        ),
+                      ],
+                    );
+                  },
                 );
-              },
-            );
-          } else if (details.targetElement == CalendarElement.appointment) {
-            Appointment appointment = details.appointments![0];
-            citaSeleccionadaId = appointment.id as String?;
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => NuevaCita(
-                  appointments: appointments,
-                  citaIndex: appointments.indexOf(appointment),
-                ),
-              ),
-            );
-          }
+              } else if (details.targetElement == CalendarElement.appointment) {
+                Appointment appointment = details.appointments![0];
+                citaSeleccionadaId = appointment.id as String?;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => NuevaCita(
+                      appointments: appointments,
+                      citaIndex: appointments.indexOf(appointment),
+                    ),
+                  ),
+                );
+              }
+            },
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(

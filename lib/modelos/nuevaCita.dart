@@ -142,7 +142,6 @@ class NuevaCitaState extends State<NuevaCita> {
         subject: titulo,
         color: Colors.blue,
       );
-
       var rng = Random();
       var key_ = rng.nextInt(10000).toString();
 

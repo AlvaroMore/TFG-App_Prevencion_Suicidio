@@ -59,6 +59,8 @@ dependencies:
   video_thumbnail: ^0.5.3
   open_file: ^3.3.2
   just_audio: ^0.9.34
+  audio_video_progress_bar: ^1.0.1
+  rxdart: ^0.27.7
   
 dev_dependencies:
   flutter_test:
