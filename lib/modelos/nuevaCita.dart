@@ -106,7 +106,6 @@ class NuevaCitaState extends State<NuevaCita> {
 
   Future<String> conseguirUserToken(String? selectedUser) async {
     if (userRole == 'administrador') {
-      // Fetch the selected user's token from the database based on the selectedUser
       DatabaseReference userRef = baseDatos.ref().child('users');
       DatabaseEvent snapshot = await userRef.orderByChild('usuario').equalTo(selectedUser).once();
       Map<dynamic, dynamic> userData = snapshot.snapshot.value as Map<dynamic, dynamic>;
@@ -116,7 +115,6 @@ class NuevaCitaState extends State<NuevaCita> {
         return userToken;
       }
     } else {
-      // Return the admin's token
       return adminToken ?? '';
     }
     return '';
@@ -177,7 +175,7 @@ class NuevaCitaState extends State<NuevaCita> {
         DataSource dataSource = DataSource(widget.appointments);
         dataSource.actualizarCita(widget.appointments);
       }
-      Navigator.pop(context);
+      Navigator.pop(context, true);
       sendPushNotification();
     } else {
       showDialog(

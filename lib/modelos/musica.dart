@@ -100,7 +100,7 @@ class MusicaState extends State<Musica> {
   }
 
   Future<void> mensajeEliminacion(BuildContext context, String cancion) async {
-    final result = await showDialog(
+    final resultado = await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
@@ -120,7 +120,7 @@ class MusicaState extends State<Musica> {
                 Navigator.of(context).pop();
                 // ignore: use_build_context_synchronously
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Video eliminado')),
+                  const SnackBar(content: Text('Cancion eliminada')),
                 );
               },
               child: const Text('Eliminar'),

@@ -59,12 +59,13 @@ class _ReproductorMusicaState extends State<ReproductorMusica> {
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.blue,
         elevation: 0,
+        title: const Text('Reproductor'),
       ),
       body: Container(
         padding: const EdgeInsets.all(20),
@@ -72,33 +73,47 @@ class _ReproductorMusicaState extends State<ReproductorMusica> {
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF144771), Color(0xFF071A2C)]
-          ),
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF144771), Color(0xFF071A2C)]),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7), // Color de fondo negro con opacidad
-                borderRadius: BorderRadius.circular(10), // Bordes redondeados
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Espaciado interior
-              child: Text(
-                widget.nombreCancion,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+            Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    image: const DecorationImage(
+                      image: AssetImage('recursos/musica.png'),
+                      fit: BoxFit.cover,
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 200),
                 ),
-              ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: Text(
+                    widget.nombreCancion,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             StreamBuilder<PositionData>(
               stream: _positionDataStream,
-              builder: (context, snapshot){
+              builder: (context, snapshot) {
                 final positionData = snapshot.data;
                 return ProgressBar(
                   barHeight: 8,
@@ -110,7 +125,7 @@ class _ReproductorMusicaState extends State<ReproductorMusica> {
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                   ),
-                  progress: positionData?.position ?? Duration.zero, 
+                  progress: positionData?.position ?? Duration.zero,
                   buffered: positionData?.bufferedPosition ?? Duration.zero,
                   total: positionData?.duration ?? Duration.zero,
                   onSeek: _audioPlayer.seek,
@@ -145,10 +160,10 @@ class Controles extends StatelessWidget{
         final playing = playerState?.playing;
         if (playing ?? false) {
           return IconButton(
-            onPressed: audioPlayer.pause, // Cambiar de audioPlayer.play a audioPlayer.pause
+            onPressed: audioPlayer.pause,
             iconSize: 80,
             color: Colors.white,
-            icon: const Icon(Icons.pause_rounded), // Cambiar el icono a pausa
+            icon: const Icon(Icons.pause_rounded),
           );
         }
         return IconButton(

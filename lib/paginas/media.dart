@@ -5,11 +5,13 @@ import 'package:appbu_s/modelos/musica.dart';
 import 'package:appbu_s/modelos/frases.dart';
 
 class Media extends StatelessWidget {
+  const Media({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Multimedia'),
+        title: const Text('Multimedia'),
       ),
       body: Column(
         children: [
@@ -20,31 +22,31 @@ class Media extends StatelessWidget {
                 Expanded(
                   child: FolderButton(
                     title: 'IMAGENES',
-                    image: AssetImage('recursos/imagenes.png'),
+                    image: const AssetImage('recursos/imagenes.png'),
                     width: 250,
                     height: 280,
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Imagenes(),
+                          builder: (context) => const Imagenes(),
                         ),
                       );
                     },
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: FolderButton(
                     title: 'VIDEOS',
-                    image: AssetImage('recursos/videos.png'),
+                    image: const AssetImage('recursos/videos.png'),
                     width: 250,
                     height: 280,
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Videos(),
+                          builder: (context) => const Videos(),
                         ),
                       );
                     },
@@ -53,7 +55,7 @@ class Media extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -61,31 +63,31 @@ class Media extends StatelessWidget {
                 Expanded(
                   child: FolderButton(
                     title: 'MUSICA',
-                    image: AssetImage('recursos/musica.png'),
+                    image: const AssetImage('recursos/musica.png'),
                     width: 250,
                     height: 280,
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Musica(),
+                          builder: (context) => const Musica(),
                         ),
                       );
                     },
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: FolderButton(
                     title: 'FRASES',
-                    image: AssetImage('recursos/frases.png'),
+                    image: const AssetImage('recursos/frases.png'),
                     width: 250,
                     height: 280,
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Frases(),
+                          builder: (context) => const Frases(),
                         ),
                       );
                     },
@@ -108,12 +110,12 @@ class FolderButton extends StatelessWidget {
   final double width;
   final double height;
 
-  const FolderButton({
+  const FolderButton({super.key, 
     required this.title,
     required this.image,
     required this.onPressed,
-    this.width = 150, // Default width
-    this.height = 150, // Default height
+    this.width = 150,
+    this.height = 150,
   });
 
   @override
@@ -142,11 +144,11 @@ class FolderButton extends StatelessWidget {
             alignment: Alignment.bottomCenter,
             child: Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               color: Colors.black54,
               child: Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'Arial',

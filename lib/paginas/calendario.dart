@@ -55,7 +55,6 @@ class CalendarioState extends State<Calendario> {
 
   @override
   void dispose() {
-    // Asegúrate de cerrar el controlador de flujo cuando el widget se elimine.
     _citasStreamController.close();
     super.dispose();
   }
@@ -257,7 +256,9 @@ class CalendarioState extends State<Calendario> {
 
   void eliminarCita(dynamic appointmentId) {
     baseDatos.ref().child('citas').child(appointmentId).remove();
+    Navigator.pop(context);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -295,7 +296,7 @@ class CalendarioState extends State<Calendario> {
       ),
       body: StreamBuilder<List<Appointment>>(
         stream: _citasStreamController.stream,
-        initialData: appointments, // Datos iniciales (puedes establecerlo en una lista vacía si prefieres).
+        initialData: appointments,
         builder: (context, snapshot) {
           final citas = snapshot.data ?? [];
           return SfCalendar(
@@ -345,13 +346,16 @@ class CalendarioState extends State<Calendario> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final resultado = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => NuevaCita(appointments: appointments),
             ),
           );
+          if (resultado == true) {
+            cargaCitas();
+          }
         },
         child: const Icon(Icons.add),
       ),

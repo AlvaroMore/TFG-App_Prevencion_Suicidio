@@ -6,7 +6,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
+
+class Video {
+  final String videoUrl;
+  final String videoNombre;
+  Video({required this.videoUrl, required this.videoNombre});
+}
 
 class Videos extends StatefulWidget {
   const Videos({Key? key});
@@ -16,46 +21,44 @@ class Videos extends StatefulWidget {
 }
 
 class VideosState extends State<Videos> {
-  List<String> videoUrls = [];
-  List<String> videoMiniaturas = [];
+  List<Video> videoUrls = [];
   final baseDatos = FirebaseDatabase.instance;
+  List<String> playedVideos = [];
+  bool isPlayingVideo = false;
+  Image videoMiniatura = Image.asset('recursos/videos.png');
 
   @override
   void initState() {
     super.initState();
     cargarVideos();
+    cargarVideoMiniatura();
   }
 
   Future<void> cargarVideos() async {
     final user = FirebaseAuth.instance.currentUser;
     final storage = firebase_storage.FirebaseStorage.instance;
-    final firebase_storage.ListResult resultado =
-        await storage.ref().child('videos/${user?.uid}').listAll();
-    final urls = await Future.wait(
-      resultado.items.map((ref) => ref.getDownloadURL()),
-    );
+    final List<firebase_storage.Reference> userItems =
+        (await storage.ref().child('videos/${user?.uid}').listAll()).items;
+    final List<Video> videosCargados = [];
+
+    for (final item in userItems) {
+      final itemName = item.name;
+      final itemUrl = await item.getDownloadURL();
+      final videoNombre = itemName.replaceAll('.mp4', '');
+      final video = Video(
+        videoUrl: itemUrl,
+        videoNombre: videoNombre,
+      );
+      videosCargados.add(video);
+    }
     setState(() {
-      videoUrls = urls;
-      cargarMiniaturas();
+      videoUrls = videosCargados;
     });
   }
 
-  Future<void> cargarMiniaturas() async {
-    final user = FirebaseAuth.instance.currentUser;
-    final storage = firebase_storage.FirebaseStorage.instance;
-    final thumbnails = await Future.wait(
-      videoUrls.map((url) async {
-        final thumbnailPath = await VideoThumbnail.thumbnailFile(
-          video: url,
-          imageFormat: ImageFormat.JPEG,
-          maxWidth: 120,
-          quality: 25,
-        );
-        return thumbnailPath;
-      }),
-    );
+  void cargarVideoMiniatura() {
     setState(() {
-      videoMiniaturas = thumbnails.where((thumbnail) => thumbnail != null).map((thumbnail) => thumbnail!).toList();
+      videoMiniatura = Image.asset('recursos/videos.png');
     });
   }
 
@@ -67,30 +70,80 @@ class VideosState extends State<Videos> {
     );
     if (videoSeleccionado != null) {
       final storage = firebase_storage.FirebaseStorage.instance;
-      final nombreVideo = DateTime.now().microsecondsSinceEpoch.toString();
-      final ref = storage.ref().child('videos/${user?.uid}/$nombreVideo');
-      final i = ref.putFile(
-        File(videoSeleccionado.path),
-        firebase_storage.SettableMetadata(contentType: 'video/*'),
+      final carpeta = 'videos/${user?.uid}';
+      String? videoNombre;
+
+      // ignore: use_build_context_synchronously
+      videoNombre = await showDialog<String>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Nombre del video'),
+            content: TextField(
+              decoration: const InputDecoration(labelText: 'Nombre del video'),
+              onChanged: (value) {
+                videoNombre = value;
+              },
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  if (videoNombre != null && videoNombre!.isNotEmpty) {
+                    final archivoNombre = '$videoNombre.mp4';
+                    final refVideo = storage.ref().child('$carpeta/$archivoNombre');
+                    final archivoVideo = File(videoSeleccionado.path);
+                    final uploadVideoTask = refVideo.putFile(
+                      archivoVideo,
+                      firebase_storage.SettableMetadata(contentType: 'video/*'),
+                    );
+                    try {
+                      await uploadVideoTask.whenComplete(() async {
+                        final conseguirUrl = await refVideo.getDownloadURL();
+                        final nombreNoNulo = videoNombre!;
+                        final video = Video(
+                          videoUrl: conseguirUrl,
+                          videoNombre: nombreNoNulo,
+                        );
+                        setState(() {
+                          videoUrls.add(video);
+                        });
+                        // ignore: use_build_context_synchronously
+                        Navigator.of(context).pop();
+                      });
+                    // ignore: empty_catches
+                    } catch (error) {}
+                  }
+                },
+                child: const Text('Guardar'),
+              ),
+            ],
+          );
+        },
       );
-      try {
-        await i.whenComplete(() async {
-          final downloadUrl = await ref.getDownloadURL();
-          setState(() {
-            videoUrls.add(downloadUrl);
-          });
-        });
-      } catch (error) {}
     }
   }
 
-  void verVideo(BuildContext context, String videoUrl) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => VideoPlayer(videoUrl: videoUrl),
-      ),
-    );
+  void verVideo(BuildContext context, String videoUrl, String videoNombre) {
+    if (!playedVideos.contains(videoUrl) && !isPlayingVideo) {
+      isPlayingVideo = true;
+      playedVideos.add(videoUrl);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VideoPlayer(videoUrl: videoUrl, videoNombre: videoNombre),
+        ),
+      ).then((_) {
+        isPlayingVideo = false;
+        Navigator.pop(context);
+      });
+    }
   }
 
   void mensajeEliminacion(BuildContext context, String videoUrl) {
@@ -125,14 +178,14 @@ class VideosState extends State<Videos> {
     );
   }
 
-
   Future<void> borrarVideo(String videoUrl) async {
     final storage = firebase_storage.FirebaseStorage.instance;
-    final ref = storage.refFromURL(videoUrl);
-    await ref.delete();
+    final index = videoUrls.indexWhere((item) => item.videoUrl == videoUrl);
 
-    final index = videoUrls.indexOf(videoUrl);
     if (index != -1) {
+      final videoItem = videoUrls[index];
+      final refVideo = storage.refFromURL(videoItem.videoUrl);
+      await refVideo.delete();
       setState(() {
         videoUrls.removeAt(index);
       });
@@ -146,36 +199,41 @@ class VideosState extends State<Videos> {
         title: const Text('Videos'),
       ),
       body: Padding(
-        padding: const EdgeInsets.only(top: 16),
+        padding: const EdgeInsets.all(9.0),
         child: GridView.builder(
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 10,
+            crossAxisSpacing: 15,
             mainAxisSpacing: 10,
           ),
           itemCount: videoUrls.length,
-          itemBuilder: (context, index) {
-            final videoUrl = videoUrls[index];
-            final videoThumbnail = videoMiniaturas.length > index ? videoMiniaturas[index] : '';
-            return GestureDetector(
-              onTap: () => verVideo(context, videoUrl),
-              onLongPress: () => mensajeEliminacion(context, videoUrl),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  videoThumbnail.isNotEmpty
-                      ? Image.file(
-                          File(videoThumbnail),
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                        )
-                      : const Icon(Icons.video_library, size: 48),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            );
-          },
+        itemBuilder: (context, index) {
+          final videoItem = videoUrls[index];
+
+          return GestureDetector(
+            onTap: () => verVideo(context, videoItem.videoUrl, videoItem.videoNombre),
+            onLongPress: () => mensajeEliminacion(context, videoItem.videoUrl),
+            child: Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                videoMiniatura,
+                Container(
+                  color: Colors.black.withOpacity(0.6),
+                  padding: EdgeInsets.all(4.0),
+                  child: Text(
+                    videoItem.videoNombre,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -188,8 +246,9 @@ class VideosState extends State<Videos> {
 
 class VideoPlayer extends StatefulWidget {
   final String videoUrl;
+  final String videoNombre;
 
-  const VideoPlayer({Key? key, required this.videoUrl});
+  const VideoPlayer({Key? key, required this.videoUrl, required this.videoNombre});
 
   @override
   VideoPlayerState createState() => VideoPlayerState();
@@ -205,6 +264,11 @@ class VideoPlayerState extends State<VideoPlayer> {
     controller = VideoPlayerController.network(widget.videoUrl)
       ..initialize().then((_) {
         setState(() {});
+        controller.addListener(() {
+          if (controller.value.position >= controller.value.duration) {
+            controller.pause();
+          }
+        });
       });
   }
 
@@ -225,11 +289,14 @@ class VideoPlayerState extends State<VideoPlayer> {
     final chewieController = ChewieController(
       videoPlayerController: controller,
       autoPlay: true,
-      looping: true,
+      looping: false,
       showControls: controles,
     );
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.videoNombre),
+      ),
       body: GestureDetector(
         onTap: mostrarControles,
         child: Stack(
@@ -252,16 +319,4 @@ class VideoPlayerState extends State<VideoPlayer> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
