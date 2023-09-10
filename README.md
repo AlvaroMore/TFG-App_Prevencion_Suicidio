@@ -14,6 +14,6 @@ Los archivos del proyecto están en la carpeta lib de este repositorio.
 Descarga del APK (versión 6.1) de la aplicación (Android): https://drive.google.com/file/d/1sJzl_0NHNZ-cPROQR3CXGFsyoH2Jmq48/view?usp=sharing
 
 **Autor:** Álvaro Moreno Palmero \
-**Tutores:** Pedro Latorre Carmona y Ana Serrano Mamolar \
+**Tutores:** Ana Serrano Mamolar y Pedro Latorre Carmona \
 **Titulación:** Ingeniería de la Salud \
 **Lugar:** Universidad de Burgos
