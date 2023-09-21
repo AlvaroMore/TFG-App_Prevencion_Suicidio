@@ -14,7 +14,7 @@ Los archivos del proyecto están en la carpeta lib de este repositorio.
 Descarga del APK (versión 7.0) de la aplicación (Android): https://drive.google.com/file/d/1sJzl_0NHNZ-cPROQR3CXGFsyoH2Jmq48/view?usp=sharing  
 Usuario de prueba:
 - Correo: usuario1@gmail.com
-- Contraseña: 123456
+- Contraseña: 123456  
 Administrador de prueba:
 - Correo: administrador@gmail.com
 - Contraseña: 123456
