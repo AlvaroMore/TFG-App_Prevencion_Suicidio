@@ -37,9 +37,6 @@ class CalendarioState extends State<Calendario> {
   String? citaSeleccionadaId;
   // ignore: prefer_typing_uninitialized_variables
   var userRol;
-  String usuarioSeleccionado = '';
-  String usuarioSeleccionadoId = '';
-  bool mostrarMenu = false;
   List<String> listaUsuarios = [];
   DateTime fechaActual = DateTime.now();
   final _citasStreamController = StreamController<List<Appointment>>();
@@ -62,16 +59,6 @@ class CalendarioState extends State<Calendario> {
   void fetchUserRoleAndCargaCitas() async {
     await fetchUserRole();
     cargaCitas();
-    if (mostrarMenu) {
-      DatabaseReference usersRef = baseDatos.ref().child('users');
-      usersRef.once().then((DatabaseEvent snapshot) {
-        Map<dynamic, dynamic> usersMap = snapshot.snapshot.value as Map<dynamic, dynamic>;
-        setState(() {
-          listaUsuarios = usersMap.entries.map((e) => e.value['usuario']).toList().cast<String>();
-          usuarioSeleccionado = listaUsuarios.isNotEmpty ? listaUsuarios[0] : '';
-        });
-      });
-    }
   }
 
   Future<String> conseguirRol(String userId) async {
@@ -87,7 +74,6 @@ class CalendarioState extends State<Calendario> {
       String role = await conseguirRol(user.uid);
       setState(() {
         userRol = role;
-        mostrarMenu = (userRol == 'administrador');
       });
     }
   }
@@ -242,6 +228,7 @@ class CalendarioState extends State<Calendario> {
                   onPressed: () {
                     eliminarCita(appointment.id! as String);
                     appointments.remove(appointment);
+                    Navigator.of(context).pop();
                     setState(() {});
                   },
                   icon: const Icon(Icons.delete, color: Colors.red),
@@ -256,7 +243,6 @@ class CalendarioState extends State<Calendario> {
 
   void eliminarCita(dynamic appointmentId) {
     baseDatos.ref().child('citas').child(appointmentId).remove();
-    Navigator.pop(context);
   }
 
 
@@ -271,28 +257,6 @@ class CalendarioState extends State<Calendario> {
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const Menu()));
           },
         ),
-        actions: [
-          if (mostrarMenu)
-            DropdownButton<String>(
-              value: usuarioSeleccionado,
-              onChanged: (String? nuevoValor) {
-                conseguirUserId(nuevoValor!).then((userId) {
-                  setState(() {
-                    usuarioSeleccionado = nuevoValor;
-                    usuarioSeleccionadoId = userId;
-                  });
-                });
-              },
-              items: listaUsuarios.map((String usuario) {
-                return DropdownMenuItem<String>(
-                  value: usuario,
-                  child: Text(usuario),
-                );
-              }).toList(),
-              hint: const Text('Seleccione un usuario'),
-              dropdownColor: Colors.white,
-            ),
-        ],
       ),
       body: StreamBuilder<List<Appointment>>(
         stream: _citasStreamController.stream,

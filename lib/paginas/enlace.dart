@@ -63,48 +63,72 @@ class EnlaceState extends State<Enlace> {
     );
   }
 
-  Widget listaEnlaces() {
-    final linksRef = FirebaseDatabase.instance.ref().child('links');
-    return FirebaseAnimatedList(
-      query: linksRef,
-      itemBuilder: (context, snapshot, animation, index) {
-        final linkData = snapshot.value as Map<dynamic, dynamic>;
-        final linkKey = snapshot.key;
-        final url = linkData['url'];
-        final texto = linkData['texto'];
-        return Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final uri = Uri.parse(url);
-                    await launchUrl(uri);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-                    textStyle: const TextStyle(fontSize: 18),
+Widget listaEnlaces() {
+  final linksRef = FirebaseDatabase.instance.ref().child('links');
+  return FirebaseAnimatedList(
+    query: linksRef,
+    itemBuilder: (context, snapshot, animation, index) {
+      final linkData = snapshot.value as Map<dynamic, dynamic>;
+      final linkKey = snapshot.key;
+      final url = linkData['url'];
+      final texto = linkData['texto'];
+      return Column(
+        children: [
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: MediaQuery.of(context).size.width / 1.7,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(texto),
-                ),
-              ),
-              if (admin)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () => borrarLink(linkKey!),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final uri = Uri.parse(url);
+                      await launchUrl(uri);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(10),
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                      ),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.link),
+                        SizedBox(width: 8),
+                        Text(texto),
+                      ],
+                    ),
                   ),
                 ),
-            ],
+                if (admin)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    child: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => borrarLink(linkKey!),
+                    ),
+                  ),
+              ],
+            ),
           ),
-        );
-      },
-    );
-  }
+          SizedBox(height: 10),
+        ],
+      );
+    },
+  );
 }
+}
+
+
 
 
 

@@ -30,6 +30,7 @@ class NuevoEnlace extends StatelessWidget {
                 labelText: 'Texto',
                 border: OutlineInputBorder(),
               ),
+              maxLength: 20,
             ),
             SizedBox(height: 32),
             Row(
