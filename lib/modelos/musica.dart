@@ -25,31 +25,35 @@ class MusicaState extends State<Musica> {
     cargarCancionesYMostrar();
   }
 
-  Future<void> subirMusica() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['mp3'],
-    );
+Future<void> subirMusica() async {
+  FilePickerResult? result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['mp3'],
+  );
 
-    if (result != null) {
-      final archivo = File(result.files.single.path!);
-      if (archivo.existsSync()) {
-        final bytes = await archivo.readAsBytes();
-        final user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          Reference baseDatos = FirebaseStorage.instance.ref()
-              .child('musica/${user.uid}/${archivo.path.split('/').last}');
-          UploadTask uploadTask = baseDatos.putData(bytes);
-          await uploadTask.whenComplete(() {
-            setState(() {
-              ruta = archivo.path;
-              reproduciendo = false;
-            });
+  if (result != null) {
+    final archivo = File(result.files.single.path!);
+    if (archivo.existsSync()) {
+      final bytes = await archivo.readAsBytes();
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        Reference baseDatos = FirebaseStorage.instance
+            .ref()
+            .child('musica/${user.uid}/${archivo.path.split('/').last}');
+        UploadTask uploadTask = baseDatos.putData(bytes);
+        await uploadTask.whenComplete(() async {
+          final url = await baseDatos.getDownloadURL();
+          setState(() {
+            ruta = archivo.path;
+            reproduciendo = false;
+            cancionesInfoMap[baseDatos.fullPath] = url; // Agregar la nueva canción al mapa
           });
-        } 
+        });
       }
     }
   }
+}
+
 
   Future<List<String>> cargarCanciones() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -136,23 +140,18 @@ class MusicaState extends State<Musica> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Música'),
-      ),
-      body: Center(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            if (ruta.isNotEmpty)
-              Text(
-                'Música seleccionada: $ruta',
-                style: const TextStyle(fontSize: 18),
-              ),
-            const SizedBox(height: 16),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Música'),
+    ),
+    body: Center(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
           if (cancionesInfoMap.isNotEmpty)
             Column(
               children: cancionesInfoMap.entries.map((entry) {
@@ -181,16 +180,17 @@ class MusicaState extends State<Musica> {
                 );
               }).toList(),
             ),
-          ],
-        ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: subirMusica,
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-    );
-  }
+    ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: subirMusica,
+      child: const Icon(Icons.add),
+    ),
+    floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+  );
+}
+
 }
 
 
